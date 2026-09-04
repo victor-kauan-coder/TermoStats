@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "author": "Topicos em Sistemas Computacionais I - UFPI 2026.2",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled",
+      "top": -230,
+      "left": -330,
+      "attrs": {
+        "i2cAddress": "0x3c"
+      }
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "mpu",
+      "top": 40,
+      "left": -330,
+      "attrs": {
+        "accelX": "0",
+        "accelY": "0",
+        "accelZ": "1",
+        "temperature": "38"
+      }
+    },
+    {
+      "type": "wokwi-microsd-card",
+      "id": "sd",
+      "top": -230,
+      "left": 330,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led",
+      "top": 100,
+      "left": 300,
+      "attrs": {
+        "color": "yellow",
+        "label": "vivo"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rled",
+      "top": 190,
+      "left": 240,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "mpuB",
+      "top": 260,
+      "left": -330,
+      "attrs": {
+        "accelX": "0.3",
+        "accelY": "-0.2",
+        "accelZ": "0.9",
+        "temperature": "38"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "oled:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "oled:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "oled:SDA",
+      "esp:21",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "oled:SCL",
+      "esp:22",
+      "gold",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpu:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpu:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpu:SDA",
+      "esp:21",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpu:SCL",
+      "esp:22",
+      "gold",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpu:AD0",
+      "esp:GND.1",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "sd:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "sd:GND",
+      "esp:GND.2",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "sd:SCK",
+      "esp:18",
+      "blue",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "sd:DO",
+      "esp:19",
+      "cyan",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "sd:DI",
+      "esp:23",
+      "violet",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "sd:CS",
+      "esp:5",
+      "orange",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "esp:26",
+      "rled:1",
+      "orange",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "rled:2",
+      "led:A",
+      "orange",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "led:C",
+      "esp:GND.2",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpuB:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpuB:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpuB:SDA",
+      "esp:21",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpuB:SCL",
+      "esp:22",
+      "gold",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "mpuB:AD0",
+      "esp:14",
+      "magenta",
+      [
+        "v0"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}
