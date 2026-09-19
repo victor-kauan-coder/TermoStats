@@ -20,30 +20,47 @@ de projeto por trás dele — o que a disciplina chama de "origem de cada númer
 6. [Instalação e dependências](#6-instalação-e-dependências)
 7. [Diagnóstico de falhas](#7-diagnóstico-de-falhas)
 8. [Extensões sugeridas](#8-extensões-sugeridas)
-9. [Referências](#9-referências)
+9. [Configuração em tempo de execução](#9-configuração-em-tempo-de-execução)
+10. [Alarme local](#10-alarme-local)
+11. [Referências](#11-referências)
 
 ---
 
 ## 1. Visão geral da arquitetura
 
-O nó segue o ciclo **acordar → medir → filtrar → (publicar) → dormir**,
-descrito na Aula 08 como o ciclo básico de um sistema IoT alimentado por
-bateria:
+O nó segue o ciclo **acordar → medir → filtrar → avaliar alarme →
+(publicar) → dormir**, descrito na Aula 08 como o ciclo básico de um
+sistema IoT alimentado por bateria:
 
 ```
-┌─────────┐   timer    ┌──────────┐   5 leituras   ┌──────────┐   mediana +   ┌─────────┐
-│  deep   │ ─────────▶ │  acorda  │ ─────────────▶ │  DHT22   │ ────────────▶ │  dado   │
-│  sleep  │            │ (setup)  │   (>=2 s entre) │  amostra │   EMA (RTC)   │  final  │
-└─────────┘            └──────────┘                └──────────┘               └────┬────┘
-     ▲                                                                              │
-     └──────────────────────────── esp_deep_sleep_start() ◀───────────────────────┘
+┌─────────┐   timer    ┌──────────┐   5 leituras   ┌──────────┐   mediana +   ┌─────────┐   fora da    ┌─────────┐
+│  deep   │ ─────────▶ │  acorda  │ ─────────────▶ │  DHT22   │ ────────────▶ │  dado   │ ───faixa?──▶ │ alarme  │
+│  sleep  │            │ (setup)  │   (>=2 s entre) │  amostra │   EMA (RTC)   │  final  │              │ local   │
+└─────────┘            └──────────┘                └──────────┘               └────┬────┘              └────┬────┘
+     ▲                                                                              │                        │
+     │                                     intervalo normal ou de alarme            │                        │
+     └───────────────────────────────── esp_deep_sleep_start() ◀────────────────────┴────────────────────────┘
 ```
 
-Um ponto central da Aula 08 se aplica diretamente aqui: **em deep sleep o
-`loop()` nunca é retomado — o programa recomeça do `setup()`**. Por isso todo
-o firmware mora no `setup()`, e o que precisa sobreviver ao sono (contador de
-despertares, média exponencial) é declarado com `RTC_DATA_ATTR`, a única
-memória que atravessa o deep sleep.
+Duas coisas mudaram em relação à primeira versão deste firmware, e
+ambas vêm de uma mesma constatação: o mesmo nó precisa atender
+ambientes com criticidade diferente, sem recompilar para cada
+instalação.
+
+- O **intervalo entre leituras** e os **limiares de alarme** deixaram
+  de ser `#define` fixos e passaram a ser configuráveis em tempo de
+  execução, gravados na NVS via `Preferences` (Seção 9).
+- O nó agora **compara a leitura contra a faixa configurada e aciona
+  um alarme local** (buzzer + LED) quando ela sai da faixa (Seção 10).
+
+Um ponto central da Aula 08 continua se aplicando diretamente aqui:
+**em deep sleep o `loop()` nunca é retomado — o programa recomeça do
+`setup()`**. Por isso todo o firmware mora no `setup()`, e o que
+precisa sobreviver ao sono (contador de despertares, média
+exponencial) é declarado com `RTC_DATA_ATTR`, a única memória que
+atravessa o deep sleep. A configuração (intervalo, limiares), por sua
+vez, sobrevive de outra forma — pela NVS, que persiste mesmo com o nó
+totalmente desligado (não só dormindo).
 
 ---
 
@@ -54,6 +71,8 @@ memória que atravessa o deep sleep.
 - ESP32 (referência da disciplina: WeMos D1 R32, ou qualquer placa equivalente)
 - DHT22 / AM2302 (o AM2302 é o mesmo chip DHT22 em um módulo encapsulado)
 - 1 resistor de 10 kΩ (pull-up do pino de dado)
+- 1 buzzer ativo (2 terminais, já oscila sozinho — não confundir com o passivo, que precisa de PWM)
+- 1 LED de alarme + 1 resistor limitador (~330 Ω)
 - 2 resistores de 100 kΩ (opcional — divisor para leitura de bateria)
 - Protoboard e jumpers
 
@@ -151,6 +170,13 @@ reportar um valor sem sentido físico, que você pode descartar.
 | GND           | GND                      |
 | DATA          | GPIO4, **com pull-up de 10 kΩ até o 3V3** |
 
+| Alarme local | ESP32 (D1 R32) |
+|---|---|
+| Buzzer ativo (+) | GPIO26 |
+| Buzzer ativo (−) | GND |
+| LED de alarme (ânodo, via resistor ~330 Ω) | GPIO27 |
+| LED de alarme (catodo) | GND |
+
 | Divisor VBAT (opcional) | ESP32 (D1 R32) |
 |---|---|
 | Nó central do divisor (100k/100k) | GPIO34 |
@@ -172,6 +198,8 @@ Seguindo o formato de mapa de barramento pedido nas Aulas 06 e 08:
 |---|---|---|---|---|
 | DHT22 DATA | 4 | A1 | digital, dreno aberto + pull-up | não usado como ADC neste projeto, sem conflito |
 | LED de status | 25 | D3 | saída digital | só para bancada; remover/desligar em campo |
+| Buzzer do alarme | 26 | D4 | saída digital | ativo em nível alto enquanto o alarme dispara |
+| LED do alarme | 27 | D5 | saída digital | distinto do LED de status (Seção 10) |
 | VBAT (divisor) | 34 | A2 | ADC1, só entrada | confiável com WiFi ligado (Aula 03) |
 | UART0 | 1 / 3 | D0 / D1 | reservado | usado pelo upload e monitor serial — **não ocupar** |
 
@@ -283,7 +311,8 @@ cada N minutos". Se o seu projeto precisar acordar por um evento externo
 ### 5.3 Orçamento de energia — como preencher com números reais
 
 O firmware imprime, no primeiro boot, uma **estimativa inicial** de consumo
-diário, seguindo os quatro passos da Aula 08 ("Bateria e painel em quatro
+diário para o cenário do ciclo que acabou de rodar (normal ou de alarme —
+Seção 10), seguindo os quatro passos da Aula 08 ("Bateria e painel em quatro
 passos"). Os valores de corrente usados vêm marcados por origem, exatamente
 como a oficina da Aula 08 pede:
 
@@ -291,20 +320,29 @@ como a oficina da Aula 08 pede:
 |---|---|---|
 | ESP32 acordado, sem rádio | 45 mA | folha de dados do ESP32 |
 | DHT22 em leitura | 1,5 mA | folha de dados do DHT22 |
+| Alarme ativo (buzzer + LED) | 35 mA | **estimativa — meça buzzer + LED juntos na bancada** |
 | Placa em deep sleep | 2,0 mA | **estimativa — meça na sua placa específica** |
+
+Como o intervalo agora é configurável (Seção 9), o consumo diário
+**depende do cenário de uso**: um ambiente configurado para checar a
+cada 5 min consome mais que um configurado para 30 min, e um nó que
+está disparando alarme com frequência (por estar preso fora da faixa)
+consome mais que um em operação normal, porque passa a acordar no
+intervalo mais curto de alarme.
 
 **Antes de fechar o orçamento real do projeto**, siga a Demonstração 04 da
 Aula 08: meça na bancada, com multímetro em série, pelo menos:
 
 1. Corrente do nó acordado, sem rádio (só lendo o DHT22)
 2. Corrente do nó dormindo (deep sleep)
-3. Se o seu projeto publica por WiFi: corrente durante a associação e envio
+3. Corrente do buzzer + LED de alarme juntos, durante o disparo
+4. Se o seu projeto publica por WiFi: corrente durante a associação e envio
    (tipicamente a linha mais cara da tabela, e a que "ninguém consegue
    estimar bem sem medir" — Aula 08)
 
 Depois de medir, atualize as constantes `I_ACORDADO_SEM_RADIO_mA`,
-`I_DHT22_ATIVO_mA`, `I_DEEP_SLEEP_PLACA_mA` e `T_ACORDADO_S` no topo do
-firmware com os valores reais.
+`I_DHT22_ATIVO_mA`, `I_ALARME_ATIVO_mA`, `I_DEEP_SLEEP_PLACA_mA` e
+`T_ACORDADO_S` no topo do firmware com os valores reais.
 
 ### 5.4 Dimensionando a bateria (passo 3 da Aula 08)
 
@@ -326,16 +364,24 @@ da tabela.
 
 ### 5.5 Ajustando o intervalo entre leituras
 
-`TEMPO_ENTRE_LEITURAS_S` é o parâmetro que mais afeta o orçamento de
-energia. Compare períodos diferentes antes de fechar o projeto — é
-literalmente o exercício de nivelamento sugerido na Aula 08 ("Refazer o
-exemplo com 1 min e 1 hora"):
+O intervalo entre leituras é, de longe, o parâmetro que mais afeta o
+orçamento de energia — e agora é configurável **sem recompilar**, pela
+NVS (Seção 9). O padrão de fábrica é de 10 min (`PADRAO_INTERVALO_NORMAL_S`),
+por ser o caso fechado no relatório do projeto; cada instalação real
+deve ajustar esse valor à criticidade do ambiente:
 
 | Intervalo | Ciclos/dia | Efeito |
 |---|---|---|
 | 1 min | 1440 | leitura quase contínua, consumo diário alto |
-| 15 min (padrão deste firmware) | 96 | equilíbrio comum para monitoramento ambiental |
+| 10 min (padrão de fábrica deste firmware) | 144 | caso de teste do projeto |
+| 15 min | 96 | equilíbrio comum para monitoramento ambiental |
 | 1 hora | 24 | autonomia muito maior, granularidade temporal menor |
+
+Além do intervalo normal, existe um segundo parâmetro,
+`PADRAO_INTERVALO_ALARME_S` (padrão: 1 min), usado **só enquanto a
+leitura está fora da faixa configurada** — ver Seção 10. Compare
+cenários diferentes antes de fechar o projeto, incluindo o custo de um
+alarme que dispara com frequência (mais ciclos curtos por dia).
 
 ---
 
@@ -392,10 +438,130 @@ que as próprias aulas descrevem como próximo passo:
 - **Multiplexação de vários DHT22**: como o DHT22 não tem endereço
   configurável (ao contrário do I²C, Aula 06), cada sensor adicional exige
   um pino de dado próprio — não há como colocar dois no mesmo fio.
+- **Alarme contínuo durante o deep sleep**: usar `gpio_hold_en()` sobre
+  um pino RTC para manter o buzzer/LED ligados durante o sono, em vez
+  do pulso de alguns segundos por ciclo descrito na Seção 10.1 —
+  compromete a autonomia de bateria enquanto o alarme estiver ativo,
+  então vale medir o impacto antes de adotar.
 
 ---
 
-## 9. Referências
+## 9. Configuração em tempo de execução
+
+### 9.1 Por que configuração, e não mais um `#define`
+
+A primeira versão deste firmware fixava o intervalo de leitura em
+`#define`. Isso funciona para um único cenário, mas o projeto do curso
+generalizou o produto para **ambientes de criticidade diferente** — uma
+câmara fria de farmácia pode exigir checagem a cada poucos minutos,
+enquanto uma sala de TI tolera um intervalo maior. Recompilar o
+firmware para cada instalação não escala; por isso o intervalo e os
+limiares de alarme agora são **parâmetros gravados na NVS** (memória
+não-volátil do ESP32), através da biblioteca `Preferences`.
+
+**Isto não contradiz a decisão de não persistir dados de leitura**
+(Capítulo 1 do relatório do projeto): o que é gravado aqui é
+*parâmetro de configuração* (um intervalo, um limiar), não uma série
+temporal de medições. A NVS guarda alguns números fixos até que
+alguém os troque; não guarda histórico.
+
+### 9.2 Parâmetros configuráveis
+
+| Parâmetro | Comando | Padrão de fábrica |
+|---|---|---|
+| Intervalo normal entre leituras | `SET INTERVALO=<segundos>` | 600 s (10 min) |
+| Intervalo enquanto em alarme | `SET INTERVALO_ALARME=<segundos>` | 60 s (1 min) |
+| Limite inferior de temperatura | `SET TEMP_MIN=<°C>` | 15 °C |
+| Limite superior de temperatura | `SET TEMP_MAX=<°C>` | 25 °C |
+| Limite inferior de umidade | `SET UMID_MIN=<%RH>` | 40 %RH |
+| Limite superior de umidade | `SET UMID_MAX=<%RH>` | 70 %RH |
+
+Os limiares padrão são os do cenário de teste do projeto (farmácia de
+manipulação). **Cada instalação real deve ajustar esses valores** ao
+ambiente monitorado — é exatamente o requisito RF-02 do relatório:
+faixa configurável por ambiente, não fixa em firmware.
+
+### 9.3 Como configurar
+
+Nos primeiros ~4 segundos após ligar (monitor serial em 115200 baud),
+o firmware aguarda comandos, um por linha:
+
+```
+SHOW
+SET INTERVALO=300
+SET TEMP_MIN=2
+SET TEMP_MAX=8
+SHOW
+```
+
+Cada `SET` aceito é gravado imediatamente na NVS e a janela de espera
+se renova por mais ~4 s, para permitir enviar vários comandos em
+sequência sem correr contra o relógio. `RESET` volta aos padrões de
+fábrica listados acima. Se nada for digitado dentro da janela, o nó
+segue com a última configuração gravada (ou os padrões, no primeiro
+boot) — em campo, sem ninguém no monitor serial, o comportamento é o
+mesmo de antes: o ciclo roda sozinho.
+
+### 9.4 Limitação conhecida
+
+A janela de configuração exige conexão USB/serial ativa no momento do
+boot — não há, neste ciclo, forma remota de reconfigurar um nó já
+instalado em campo (isso dependeria da camada de rede do Módulo 2).
+Para trocar a configuração de um nó em produção hoje, é preciso
+acessá-lo fisicamente.
+
+---
+
+## 10. Alarme local
+
+### 10.1 O que aciona, e quando desliga
+
+A cada ciclo com leitura válida, o firmware compara a mediana filtrada
+de temperatura e umidade contra a faixa configurada (Seção 9). Se
+qualquer uma das duas grandezas estiver fora da faixa, o nó:
+
+1. liga o buzzer ativo (GPIO26) e o LED de alarme (GPIO27);
+2. mantém os dois ligados por `ALARME_DURACAO_MS` (padrão: 3 s);
+3. desliga os dois antes de dormir.
+
+Não existe um terceiro estado "alarme ligado durante o sono": o
+`deep sleep` desliga essencialmente tudo, e manter um GPIO ligado
+durante o sono exigiria `gpio_hold_en()` sobre um pino RTC, o que este
+firmware-base não faz (ver 10.3). O alarme, portanto, é um pulso de
+alguns segundos a cada ciclo em que a leitura está fora da faixa — não
+um som contínuo.
+
+### 10.2 Por que o intervalo muda quando o alarme dispara
+
+Um pulso de alguns segundos a cada 10 minutos poderia passar
+despercebido em um ambiente ruidoso. Por isso, **enquanto a última
+leitura estiver fora da faixa, o nó passa a acordar no intervalo de
+alarme** (padrão: 1 min) em vez do intervalo normal — o alarme soa com
+mais frequência até a condição ser corrigida, e o nó volta sozinho ao
+intervalo normal assim que uma leitura voltar a ficar dentro da faixa.
+Essa é uma decisão de compromisso entre energia e resposta: acordar
+mais vezes custa mais bateria (Seção 5.3), mas é aceitável porque, por
+definição, isso só acontece enquanto algo está errado — não é o
+regime de operação esperado do dia a dia.
+
+### 10.3 Limitações conhecidas
+
+- **O alarme não soa continuamente**, só em pulsos a cada ciclo (ver
+  10.1). Para um alarme verdadeiramente contínuo seria necessário
+  manter o nó fora de deep sleep (outro perfil de energia,
+  incompatível com a autonomia de bateria que motivou o deep sleep em
+  primeiro lugar) ou usar `gpio_hold_en()` para reter o nível do pino
+  durante o sono — não implementado nesta revisão.
+- **A corrente do alarme (`I_ALARME_ATIVO_mA`) é uma estimativa**,
+  ainda não medida em bancada com o buzzer e o LED específicos do
+  protótipo. Meça antes de fechar o orçamento de energia definitivo.
+- Como neste ciclo não há rede (Módulo 2), **um alarme disparado só é
+  percebido por quem está fisicamente perto do nó** — não há
+  notificação remota ainda.
+
+---
+
+## 11. Referências
 
 - ESPRESSIF SYSTEMS. *ESP32 series datasheet*. Rev. 4.9. Xangai, 2025.
 - ESPRESSIF SYSTEMS. *ESP-IDF Programming Guide — Sleep Modes e RTC GPIO*. 2025.
