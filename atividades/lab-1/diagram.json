@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "author": "Topicos em Sistemas Computacionais I - UFPI 2026.2",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr",
+      "top": -110,
+      "left": -240,
+      "attrs": {
+        "lux": "500",
+        "gamma": "0.7",
+        "rl10": "50",
+        "threshold": "2.5"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led",
+      "top": -100,
+      "left": 250,
+      "attrs": {
+        "color": "yellow",
+        "label": "estado"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -20,
+      "left": 200,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": 110,
+      "left": 250,
+      "attrs": {
+        "volume": "0.1",
+        "mode": "smooth"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "ldr:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "ldr:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "ldr:AO",
+      "esp:34",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "esp:26",
+      "r1:1",
+      "orange",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "r1:2",
+      "led:A",
+      "orange",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "led:C",
+      "esp:GND.2",
+      "black",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "buzzer:2",
+      "esp:25",
+      "purple",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "buzzer:1",
+      "esp:GND.2",
+      "black",
+      [
+        "v0"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}
