@@ -1,0 +1,328 @@
+
+sensor: DHT22 no GPIO4 respondeu (25.3 C, 35.8 %UR)
+no: termo-no01 | eco: httpbin.org | ciclos/dia no orcamento: 144
+  1  um ciclo completo com o tempo de cada fase (E1)
+  p  payload atual e tamanho em bytes (E2)
+  n  sincroniza o relogio por NTP (E2)
+  2  POST escrito a mao, com os bytes de cada linha (E3)
+  3  o mesmo POST com uma virgula a mais no JSON (E3)
+  e  forca 404 (nao retenta) e 503 (retenta) (E3)
+  i  corrente do radio ativo medida na bancada: i135 = 135 mA (E4)
+  5  dez ciclos em HTTP + linha do orcamento (E4)
+  6  dez ciclos em HTTPS + linha do orcamento (E4)
+  r  rajada de 30 s para o medidor USB (bancada)
+  m  este menu
+
+(m para o menu)
+[1] cronometro de fases - um ciclo completo em HTTP
+
+@FASES origem=t1 serie=0 n=1 tipo=http assoc=233 dhcp=1523 dns=17 conexao=183 http=330 desc=19 total=2308 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":4,"ts":1792787258,"temp_c":25.3,"umid_pct":35.6}
+
+  associar + autenticar           233 ms
+  obter IP (DHCP)                1523 ms
+  resolver nome (DNS)              17 ms
+  conexao (TCP ou TCP+TLS)        183 ms
+  requisicao HTTP                 330 ms   -> status 200
+  desconectar                      19 ms
+    (TCP + HTTP)                  513 ms
+  ------------------------------------------
+  CICLO COMPLETO                 2308 ms
+
+  fase mais cara: obter IP (DHCP)
+
+(m para o menu)
+[1] cronometro de fases - um ciclo completo em HTTP
+
+@FASES origem=t1 serie=0 n=1 tipo=http assoc=226 dhcp=1537 dns=62 conexao=3005 http=0 desc=19 total=4853 status=-1 mais_cara=conexao
+@ENVIO status=-1 {"id":"termo-no01","seq":5,"ts":1792787262,"temp_c":25.4,"umid_pct":35.3}
+
+  associar + autenticar           226 ms
+  obter IP (DHCP)                1537 ms
+  resolver nome (DNS)              62 ms
+  conexao (TCP ou TCP+TLS)       3005 ms
+  requisicao HTTP                   0 ms   -> status -1
+  desconectar                      19 ms
+    (TCP + HTTP)                 3005 ms
+  ------------------------------------------
+  CICLO COMPLETO                 4853 ms
+
+  fase mais cara: conexao (TCP ou TCP+TLS)
+
+(m para o menu)
+[1] cronometro de fases - um ciclo completo em HTTP
+
+@FASES origem=t1 serie=0 n=1 tipo=http assoc=217 dhcp=1532 dns=1 conexao=204 http=170 desc=19 total=2147 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":6,"ts":1792787274,"temp_c":25.4,"umid_pct":35.5}
+
+  associar + autenticar           217 ms
+  obter IP (DHCP)                1532 ms
+  resolver nome (DNS)               1 ms
+  conexao (TCP ou TCP+TLS)        204 ms
+  requisicao HTTP                 170 ms   -> status 200
+  desconectar                      19 ms
+    (TCP + HTTP)                  374 ms
+  ------------------------------------------
+  CICLO COMPLETO                 2147 ms
+
+  fase mais cara: obter IP (DHCP)
+
+(m para o menu)
+[1] cronometro de fases - um ciclo completo em HTTP
+
+@FASES origem=t1 serie=0 n=1 tipo=http assoc=226 dhcp=1528 dns=1 conexao=219 http=236 desc=19 total=2234 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":7,"ts":1792787293,"temp_c":25.4,"umid_pct":35.6}
+
+  associar + autenticar           226 ms
+  obter IP (DHCP)                1528 ms
+  resolver nome (DNS)               1 ms
+  conexao (TCP ou TCP+TLS)        219 ms
+  requisicao HTTP                 236 ms   -> status 200
+  desconectar                      19 ms
+    (TCP + HTTP)                  455 ms
+  ------------------------------------------
+  CICLO COMPLETO                 2234 ms
+
+  fase mais cara: obter IP (DHCP)
+
+(m para o menu)
+
+sensor: DHT22 no GPIO4 respondeu (25.4 C, 35.7 %UR)
+no: termo-no01 | eco: httpbin.org | ciclos/dia no orcamento: 144
+  1  um ciclo completo com o tempo de cada fase (E1)
+  p  payload atual e tamanho em bytes (E2)
+  n  sincroniza o relogio por NTP (E2)
+  2  POST escrito a mao, com os bytes de cada linha (E3)
+  3  o mesmo POST com uma virgula a mais no JSON (E3)
+  e  forca 404 (nao retenta) e 503 (retenta) (E3)
+  i  corrente do radio ativo medida na bancada: i135 = 135 mA (E4)
+  5  dez ciclos em HTTP + linha do orcamento (E4)
+  6  dez ciclos em HTTPS + linha do orcamento (E4)
+  r  rajada de 30 s para o medidor USB (bancada)
+  m  este menu
+
+(m para o menu)
+[p] payload atual (73 bytes):
+  {"id":"termo-no01","seq":8,"ts":1792787322,"temp_c":25.4,"umid_pct":35.6}
+@PAYLOAD bytes=73 {"id":"termo-no01","seq":8,"ts":1792787322,"temp_c":25.4,"umid_pct":35.6}
+
+(m para o menu)
+[p] payload atual (73 bytes):
+  {"id":"termo-no01","seq":8,"ts":1792787324,"temp_c":25.4,"umid_pct":35.6}
+@PAYLOAD bytes=73 {"id":"termo-no01","seq":8,"ts":1792787324,"temp_c":25.4,"umid_pct":35.6}
+
+(m para o menu)
+[n] antes do NTP:
+  time() = 1792787325
+  conectando...
+  configTime(-10800, 0, "pool.ntp.org");
+  depois do NTP: 23/10/2026 17:28:47 (Teresina)
+  time() = 1792787327  <- vai no campo "ts"
+@NTP antes=1792787325 depois=1792787327
+
+(m para o menu)
+[p] payload atual (73 bytes):
+  {"id":"termo-no01","seq":8,"ts":1792787329,"temp_c":25.4,"umid_pct":35.6}
+@PAYLOAD bytes=73 {"id":"termo-no01","seq":8,"ts":1792787329,"temp_c":25.4,"umid_pct":35.6}
+
+(m para o menu)
+[p] payload atual (73 bytes):
+  {"id":"termo-no01","seq":8,"ts":1792787350,"temp_c":25.4,"umid_pct":35.5}
+@PAYLOAD bytes=73 {"id":"termo-no01","seq":8,"ts":1792787350,"temp_c":25.4,"umid_pct":35.5}
+
+(m para o menu)
+[n] antes do NTP:
+  time() = 1792787351
+  configTime(-10800, 0, "pool.ntp.org");
+  depois do NTP: 23/10/2026 17:29:11 (Teresina)
+  time() = 1792787351  <- vai no campo "ts"
+@NTP antes=1792787351 depois=1792787351
+
+(m para o menu)
+[2] POST httpbin.org/post escrito a mao
+  POST /post HTTP/1.1                     21 bytes
+  Host: httpbin.org                       19 bytes
+  User-Agent: ESP32-TermoStats            30 bytes
+  Content-Type: application/json          32 bytes
+  Content-Length: 73                      20 bytes
+  Connection: close                       19 bytes
+  (linha em branco)                        2 bytes
+  {"id":"termo-no01","seq":8,"ts":1792787359,"temp_c":25.4,"umid_pct":35.3}
+  cabecalho: 143 bytes  |  corpo: 73 bytes
+  <<< resposta: HTTP/1.1 200 OK
+  o servidor recebeu ("data"):  {"id":"termo-no01","seq":8,"ts":1792787359,"temp_c":25.4,"umid_pct":35.3}
+  o servidor ENTENDEU ("json"): {"id":"termo-no01","seq":8,"temp_c":25.4,"ts":1792787359,"umid_pct":35.3}
+  o campo json e igual ao enviado? sim
+@POST quebrado=0 cabecalho=143 corpo=73 status=200 json_igual=1
+@ENVIO status=200 {"id":"termo-no01","seq":8,"ts":1792787359,"temp_c":25.4,"umid_pct":35.3}
+
+(m para o menu)
+[3] POST httpbin.org/post escrito a mao, com uma virgula a mais
+  POST /post HTTP/1.1                     21 bytes
+  Host: httpbin.org                       19 bytes
+  User-Agent: ESP32-TermoStats            30 bytes
+  Content-Type: application/json          32 bytes
+  Content-Length: 74                      20 bytes
+  Connection: close                       19 bytes
+  (linha em branco)                        2 bytes
+  {"id":"termo-no01","seq":9,"ts":1792787362,"temp_c":25.4,"umid_pct":35.4,}
+  cabecalho: 143 bytes  |  corpo: 74 bytes
+  <<< resposta: HTTP/1.1 200 OK
+  o servidor recebeu ("data"):  {"id":"termo-no01","seq":9,"ts":1792787362,"temp_c":25.4,"umid_pct":35.4,}
+  o servidor ENTENDEU ("json"): null
+  o campo json e igual ao enviado? NAO
+  O HTTP transportou; ninguem entendeu. Codigo de sucesso nao valida o dado.
+@POST quebrado=1 cabecalho=143 corpo=74 status=200 json_igual=0
+@ENVIO status=200 {"id":"termo-no01","seq":9,"ts":1792787362,"temp_c":25.4,"umid_pct":35.4,}
+
+(m para o menu)
+[e] 404 (erro do no) e 503 (erro do caminho), via postComPolitica()
+ 404:
+  tentativa 1: status 404 (4xx) -> erro do no: nao retenta
+@POLITICA url=http://httpbin.org/status/404 tentativa=1 status=404 classe=4xx espera_ms=0
+ 503:
+  tentativa 1: status 503 (5xx) -> retenta em 1000 ms
+@POLITICA url=http://httpbin.org/status/503 tentativa=1 status=503 classe=5xx espera_ms=1000
+  tentativa 2: status 503 (5xx) -> retenta em 2000 ms
+@POLITICA url=http://httpbin.org/status/503 tentativa=2 status=503 classe=5xx espera_ms=2000
+  tentativa 3: status 503 (5xx) -> limite de tentativas: desiste
+@POLITICA url=http://httpbin.org/status/503 tentativa=3 status=503 classe=5xx espera_ms=0
+  o laco voltou: nada travou.
+
+(m para o menu)
+[i] corrente do radio ativo: 120.0 mA (origem: bancada). As teclas 5 e 6 passam a usa-la.
+@CORRENTE mA=120.0 origem=bancada
+
+(m para o menu)
+[5] 10 ciclos em HTTP (serie 1). Cada ciclo comeca com WIFI_OFF.
+
+   n  assoc   dhcp    dns  conex   http   desc |  total  status
+@FASES origem=t5 serie=1 n=1 tipo=http assoc=211 dhcp=1524 dns=59 conexao=241 http=228 desc=18 total=2287 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":10,"ts":1792787432,"temp_c":25.4,"umid_pct":35.3}
+   1    211   1524     59    241    228     18 |   2287  200
+@FASES origem=t5 serie=1 n=2 tipo=http assoc=217 dhcp=1521 dns=1 conexao=179 http=221 desc=19 total=2163 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":11,"ts":1792787434,"temp_c":25.4,"umid_pct":35.1}
+   2    217   1521      1    179    221     19 |   2163  200
+@FASES origem=t5 serie=1 n=3 tipo=http assoc=253 dhcp=1524 dns=1 conexao=246 http=228 desc=23 total=2281 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":12,"ts":1792787436,"temp_c":25.4,"umid_pct":35.2}
+   3    253   1524      1    246    228     23 |   2281  200
+@FASES origem=t5 serie=1 n=4 tipo=http assoc=214 dhcp=1525 dns=0 conexao=173 http=228 desc=19 total=2164 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":13,"ts":1792787439,"temp_c":25.4,"umid_pct":35.1}
+   4    214   1525      0    173    228     19 |   2164  200
+@FASES origem=t5 serie=1 n=5 tipo=http assoc=235 dhcp=1531 dns=1 conexao=252 http=433 desc=18 total=2475 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":14,"ts":1792787441,"temp_c":25.4,"umid_pct":35.2}
+   5    235   1531      1    252    433     18 |   2475  200
+@FASES origem=t5 serie=1 n=6 tipo=http assoc=220 dhcp=1533 dns=1 conexao=265 http=229 desc=19 total=2272 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":15,"ts":1792787444,"temp_c":25.4,"umid_pct":35.2}
+   6    220   1533      1    265    229     19 |   2272  200
+@FASES origem=t5 serie=1 n=7 tipo=http assoc=210 dhcp=1533 dns=1 conexao=274 http=228 desc=18 total=2270 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":16,"ts":1792787446,"temp_c":25.4,"umid_pct":35.1}
+   7    210   1533      1    274    228     18 |   2270  200
+@FASES origem=t5 serie=1 n=8 tipo=http assoc=216 dhcp=1521 dns=1 conexao=178 http=227 desc=19 total=2169 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":17,"ts":1792787448,"temp_c":25.4,"umid_pct":34.9}
+   8    216   1521      1    178    227     19 |   2169  200
+@FASES origem=t5 serie=1 n=9 tipo=http assoc=217 dhcp=1538 dns=1 conexao=263 http=228 desc=19 total=2271 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":18,"ts":1792787451,"temp_c":25.4,"umid_pct":35.0}
+   9    217   1538      1    263    228     19 |   2271  200
+@FASES origem=t5 serie=1 n=10 tipo=http assoc=220 dhcp=1521 dns=1 conexao=175 http=228 desc=19 total=2169 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":19,"ts":1792787453,"temp_c":25.4,"umid_pct":35.0}
+  10    220   1521      1    175    228     19 |   2169  200
+
+  10 de 10 ciclos com 2xx
+  minimo 2163 ms | mediana 2270 ms | maximo 2475 ms
+  fase mais cara (pela mediana): obter IP (DHCP)
+@SERIE serie=1 tipo=http ok=10 n=10 min=2163 med=2270 max=2475 mais_cara=dhcp
+
+  linha do orcamento (http):
+  estado                 | mA      | s (max) | ciclos/dia | mA.h/dia
+  associa WiFi e publica |   120.0 |    2.47 |        144 |    11.88
+  origem: corrente = bancada, tempo = bancada da equipe (maximo de 10 ciclos)
+@ORCAMENTO tipo=http mA=120.0 origem_mA=bancada s=2.475 ciclos_dia=144 mAh_dia=11.880
+
+(m para o menu)
+[6] 10 ciclos em HTTPS (serie 2). Cada ciclo comeca com WIFI_OFF.
+
+   n  assoc   dhcp    dns  conex   http   desc |  total  status
+@FASES origem=t6 serie=2 n=1 tipo=https assoc=214 dhcp=1539 dns=1 conexao=1007 http=227 desc=18 total=3012 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":20,"ts":1792787461,"temp_c":25.4,"umid_pct":34.9}
+   1    214   1539      1   1007    227     18 |   3012  200
+@FASES origem=t6 serie=2 n=2 tipo=https assoc=220 dhcp=1535 dns=1 conexao=1083 http=224 desc=158 total=3225 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":21,"ts":1792787465,"temp_c":25.5,"umid_pct":35.1}
+   2    220   1535      1   1083    224    158 |   3225  200
+@FASES origem=t6 serie=2 n=3 tipo=https assoc=220 dhcp=1539 dns=1 conexao=6993 http=216 desc=19 total=8994 status=200 mais_cara=conexao
+@ENVIO status=200 {"id":"termo-no01","seq":22,"ts":1792787468,"temp_c":25.4,"umid_pct":35.1}
+   3    220   1539      1   6993    216     19 |   8994  200
+@FASES origem=t6 serie=2 n=4 tipo=https assoc=215 dhcp=1532 dns=1 conexao=990 http=223 desc=18 total=2984 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":23,"ts":1792787477,"temp_c":25.5,"umid_pct":35.1}
+   4    215   1532      1    990    223     18 |   2984  200
+@FASES origem=t6 serie=2 n=5 tipo=https assoc=219 dhcp=1533 dns=1 conexao=4061 http=224 desc=19 total=6062 status=200 mais_cara=conexao
+@ENVIO status=200 {"id":"termo-no01","seq":24,"ts":1792787480,"temp_c":25.4,"umid_pct":35.1}
+   5    219   1533      1   4061    224     19 |   6062  200
+@FASES origem=t6 serie=2 n=6 tipo=https assoc=219 dhcp=1520 dns=1 conexao=997 http=224 desc=23 total=2990 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":25,"ts":1792787486,"temp_c":25.5,"umid_pct":35.1}
+   6    219   1520      1    997    224     23 |   2990  200
+@FASES origem=t6 serie=2 n=7 tipo=https assoc=214 dhcp=1531 dns=1 conexao=3755 http=223 desc=19 total=5749 status=200 mais_cara=conexao
+@ENVIO status=200 {"id":"termo-no01","seq":26,"ts":1792787489,"temp_c":25.5,"umid_pct":35.1}
+   7    214   1531      1   3755    223     19 |   5749  200
+@FASES origem=t6 serie=2 n=8 tipo=https assoc=232 dhcp=1523 dns=162 conexao=1029 http=222 desc=20 total=3194 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":27,"ts":1792787495,"temp_c":25.4,"umid_pct":35.2}
+   8    232   1523    162   1029    222     20 |   3194  200
+@FASES origem=t6 serie=2 n=9 tipo=https assoc=216 dhcp=1532 dns=1 conexao=992 http=189 desc=19 total=2954 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":28,"ts":1792787498,"temp_c":25.5,"umid_pct":35.2}
+   9    216   1532      1    992    189     19 |   2954  200
+@FASES origem=t6 serie=2 n=10 tipo=https assoc=284 dhcp=1547 dns=1 conexao=1042 http=225 desc=18 total=3122 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":29,"ts":1792787501,"temp_c":25.4,"umid_pct":35.2}
+  10    284   1547      1   1042    225     18 |   3122  200
+
+  10 de 10 ciclos com 2xx
+  minimo 2954 ms | mediana 3158 ms | maximo 8994 ms
+  fase mais cara (pela mediana): obter IP (DHCP)
+@SERIE serie=2 tipo=https ok=10 n=10 min=2954 med=3158 max=8994 mais_cara=dhcp
+
+  linha do orcamento (https):
+  estado                 | mA      | s (max) | ciclos/dia | mA.h/dia
+  associa WiFi e publica |   120.0 |    8.99 |        144 |    43.17
+  origem: corrente = bancada, tempo = bancada da equipe (maximo de 10 ciclos)
+@ORCAMENTO tipo=https mA=120.0 origem_mA=bancada s=8.994 ciclos_dia=144 mAh_dia=43.171
+
+(m para o menu)
+[r] rajada: ciclos HTTP sem pausa por 30 s - leia o medidor USB agora
+@FASES origem=r serie=0 n=1 tipo=http assoc=207 dhcp=1525 dns=12 conexao=199 http=228 desc=18 total=2194 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":30,"ts":1792787621,"temp_c":25.5,"umid_pct":35.2}
+  ciclo 1: 2194 ms, status 200
+@FASES origem=r serie=0 n=2 tipo=http assoc=214 dhcp=1522 dns=1 conexao=190 http=227 desc=19 total=2178 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":31,"ts":1792787623,"temp_c":25.5,"umid_pct":34.9}
+  ciclo 2: 2178 ms, status 200
+@FASES origem=r serie=0 n=3 tipo=http assoc=224 dhcp=1522 dns=65 conexao=3005 http=0 desc=20 total=4838 status=-1 mais_cara=conexao
+@ENVIO status=-1 {"id":"termo-no01","seq":32,"ts":1792787625,"temp_c":25.5,"umid_pct":34.9}
+  ciclo 3: 4838 ms, status -1
+@FASES origem=r serie=0 n=4 tipo=http assoc=216 dhcp=1537 dns=1 conexao=178 http=230 desc=19 total=2186 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":33,"ts":1792787630,"temp_c":25.5,"umid_pct":34.9}
+  ciclo 4: 2186 ms, status 200
+@FASES origem=r serie=0 n=5 tipo=http assoc=226 dhcp=1530 dns=1 conexao=155 http=244 desc=19 total=2179 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":34,"ts":1792787632,"temp_c":25.5,"umid_pct":34.8}
+  ciclo 5: 2179 ms, status 200
+@FASES origem=r serie=0 n=6 tipo=http assoc=219 dhcp=1539 dns=1 conexao=169 http=227 desc=20 total=2180 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":35,"ts":1792787635,"temp_c":25.4,"umid_pct":34.8}
+  ciclo 6: 2180 ms, status 200
+@FASES origem=r serie=0 n=7 tipo=http assoc=220 dhcp=1543 dns=0 conexao=269 http=229 desc=19 total=2283 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":36,"ts":1792787637,"temp_c":25.5,"umid_pct":34.9}
+  ciclo 7: 2283 ms, status 200
+@FASES origem=r serie=0 n=8 tipo=http assoc=222 dhcp=1522 dns=1 conexao=181 http=227 desc=19 total=2178 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":37,"ts":1792787639,"temp_c":25.4,"umid_pct":34.7}
+  ciclo 8: 2178 ms, status 200
+@FASES origem=r serie=0 n=9 tipo=http assoc=221 dhcp=1541 dns=1 conexao=166 http=227 desc=18 total=2179 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":38,"ts":1792787641,"temp_c":25.4,"umid_pct":34.8}
+  ciclo 9: 2179 ms, status 200
+@FASES origem=r serie=0 n=10 tipo=http assoc=222 dhcp=1545 dns=1 conexao=263 http=229 desc=19 total=2285 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":39,"ts":1792787644,"temp_c":25.4,"umid_pct":34.7}
+  ciclo 10: 2285 ms, status 200
+@FASES origem=r serie=0 n=11 tipo=http assoc=220 dhcp=1524 dns=1 conexao=182 http=227 desc=19 total=2178 status=200 mais_cara=dhcp
+@ENVIO status=200 {"id":"termo-no01","seq":40,"ts":1792787646,"temp_c":25.4,"umid_pct":34.7}
+  ciclo 11: 2178 ms, status 200
+@FASES origem=r serie=0 n=12 tipo=http assoc=220 dhcp=1524 dns=1 conexao=156 http=3025 desc=18 total=4950 status=200 mais_cara=http
+@ENVIO status=200 {"id":"termo-no01","seq":41,"ts":1792787648,"temp_c":25.4,"umid_pct":34.6}
+  ciclo 12: 4950 ms, status 200
+  fim da rajada: 12 ciclos. Anote a corrente media e tecle i<mA>.
+
+(m para o menu)

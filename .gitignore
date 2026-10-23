@@ -1,0 +1,12 @@
+# Credenciais: só o secrets.example.h vai para o repositório
+secrets.h
+
+# PlatformIO
+.pio/
+.vscode/
+firmware/*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
