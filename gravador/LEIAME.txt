@@ -1,0 +1,26 @@
+Laboratorio 03 - o gravador e o relatorio de qualidade
+Topicos em Sistemas Computacionais I (IoT/AIoT) - UFPI 2026.2
+
+Arquivos desta pasta
+  gravador.py    assina a arvore da equipe no broker e grava cada mensagem em dados\mensagens.csv
+  qualidade.py   le o CSV e diz, por no, quantas leituras chegaram, faltaram ou vieram repetidas
+  ca_raiz.pem    o certificado raiz do broker (HiveMQ Cloud). Deixe na mesma pasta do gravador.
+
+Uma vez so
+  pip install paho-mqtt            (Windows, se nao funcionar: py -m pip install paho-mqtt)
+
+Rodar o gravador (a senha e pedida; nao aparece enquanto voce digita)
+  python gravador.py --host ENDERECO_DO_BROKER --usuario eqNN
+
+No broker publico (broker.hivemq.com), sem usuario e sem senha
+  python gravador.py --host broker.hivemq.com --equipe eq01
+
+Rodar o relatorio (num segundo terminal, na mesma pasta)
+  python qualidade.py
+  python qualidade.py --de 10:40 --ate 10:50
+  python qualidade.py --periodo 2           (se o periodo_s do no nao for 5 s)
+  A completude vem de uma conta: (fim - inicio) / periodo + 1 leituras esperadas.
+  Com --de e --ate, a janela e a que voce deu; sem eles, da primeira a ultima leitura.
+
+O CSV fica na pasta  dados\  (criada sozinha). Para abrir no Excel, COPIE o arquivo antes.
+Ajuda de cada programa:  python gravador.py --help   e   python qualidade.py --help

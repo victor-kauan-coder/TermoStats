@@ -1,0 +1,18 @@
+# python gravador/qualidade.py dados/testes_falha_24-10-26/mensagens.csv
+# gerado em 24/10/2026 16:07 · testes de falha da AP2 (Lab 03), 24/10/2026
+
+=== eq01-no02
+  leituras recebidas  53   (seq 51 a 32)
+  faltam (seq pulou)  1
+  repetidas           0
+  reinicios do no     2   (o seq voltou a 1)
+  atraso chegada-ts   mediana 1 s · maximo 28 s
+  esperadas           90   (15:54:00 a 16:01:27, 7.5 min / 5 s)
+  completude          58.9%   (53 unicas de 90)
+  lacunas             5   (somam 212 s)
+    15:59:06 a 16:00:47     101 s   ~19 leituras
+    15:55:05 a 15:56:11      66 s   ~12 leituras
+    15:56:46 a 15:57:07      21 s   ~3 leituras
+    16:01:02 a 16:01:17      15 s   ~2 leituras
+    15:57:12 a 15:57:21       9 s   ~1 leituras
+  status              online 15:53:58  >  offline 15:55:51  >  online 15:56:11  >  offline 15:56:13  >  online 15:56:16  >  offline 15:56:59  >  online 15:57:06  >  offline 15:57:13  >  online 15:57:15  >  offline 15:57:16  >  online 15:57:20  >  offline 15:59:51  >  online 16:00:46  >  offline 16:01:07  >  online 16:01:08  >  offline 16:01:12  >  online 16:01:16

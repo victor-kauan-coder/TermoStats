@@ -1,0 +1,4 @@
+# WiFi, WiFiClientSecure e Wire ja vem no core do ESP32.
+MQTT
+ArduinoJson
+DHT sensor library for ESPx
