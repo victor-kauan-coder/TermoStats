@@ -1,0 +1,25 @@
+hardware,caso,bateria,mAh,mAh_dia,dias
+Placa de desenvolvimento,pior,LiPo 1000 mAh,1000,61.308,13.0
+Placa de desenvolvimento,pior,LiFePO4 18650 1500 mAh,1500,61.308,19.6
+Placa de desenvolvimento,pior,3× AA NiMH 2000 mAh,2000,61.308,26.1
+Placa de desenvolvimento,pior,3× AA alcalina 2500 mAh,2500,61.308,32.6
+Placa de desenvolvimento,pior,Li-ion 18650 2600 mAh,2600,61.308,33.9
+Placa de desenvolvimento,pior,2× 18650 em paralelo 5200 mAh,5200,61.308,67.9
+Placa de desenvolvimento,melhor,LiPo 1000 mAh,1000,49.404,16.2
+Placa de desenvolvimento,melhor,LiFePO4 18650 1500 mAh,1500,49.404,24.3
+Placa de desenvolvimento,melhor,3× AA NiMH 2000 mAh,2000,49.404,32.4
+Placa de desenvolvimento,melhor,3× AA alcalina 2500 mAh,2500,49.404,40.5
+Placa de desenvolvimento,melhor,Li-ion 18650 2600 mAh,2600,49.404,42.1
+Placa de desenvolvimento,melhor,2× 18650 em paralelo 5200 mAh,5200,49.404,84.2
+Módulo otimizado,pior,LiPo 1000 mAh,1000,14.868,53.8
+Módulo otimizado,pior,LiFePO4 18650 1500 mAh,1500,14.868,80.7
+Módulo otimizado,pior,3× AA NiMH 2000 mAh,2000,14.868,107.6
+Módulo otimizado,pior,3× AA alcalina 2500 mAh,2500,14.868,134.5
+Módulo otimizado,pior,Li-ion 18650 2600 mAh,2600,14.868,139.9
+Módulo otimizado,pior,2× 18650 em paralelo 5200 mAh,5200,14.868,279.8
+Módulo otimizado,melhor,LiPo 1000 mAh,1000,2.964,269.9
+Módulo otimizado,melhor,LiFePO4 18650 1500 mAh,1500,2.964,404.9
+Módulo otimizado,melhor,3× AA NiMH 2000 mAh,2000,2.964,539.8
+Módulo otimizado,melhor,3× AA alcalina 2500 mAh,2500,2.964,674.8
+Módulo otimizado,melhor,Li-ion 18650 2600 mAh,2600,2.964,701.8
+Módulo otimizado,melhor,2× 18650 em paralelo 5200 mAh,5200,2.964,1403.5

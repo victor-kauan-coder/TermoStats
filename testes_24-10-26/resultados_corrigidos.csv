@@ -1,0 +1,8 @@
+teste,distancia,distancia_m,obstaculos,linhas_csv,linhas_descartadas,esperados,recebidos_gateway,perda_radio,perda_radio_pct,perdidos_so_na_serial,falhas_mac,envios,pacotes_s,bytes_s,lat_n,lat_mediana_ms,lat_p95_ms,lat_max_ms,rssi_medio,rssi_p10,rssi_min
+teste_1.5m_2026-10-24_095646,"1,5 m",1.500,nenhum declarado,602,0,602,602,0,0.000,0,0,601,10.033,250.833,601,1.917,4.310,7.889,-63.151,-65.000,-76
+teste_3m_2026-10-24_095906,3 m,3,nenhum declarado,602,1,603,603,0,0.000,2,0,602,10.050,251.250,600,1.917,4.214,7.943,-66.276,-67.000,-73
+teste_5m_2026-10-24_100124,5 m,5,nenhum declarado,602,3,602,602,0,0.000,3,0,601,10.033,250.833,598,1.919,4.687,10.160,-71.159,-73.000,-91
+teste_5com2portasdemadeira_2026-10-24_100332,5 m,5,2 portas de madeira,602,0,602,602,0,0.000,0,0,601,10.033,250.833,601,1.910,4.188,6.277,-73.836,-75.000,-80
+teste_8m1com1parede_2026-10-24_100539,8 m,8,1 parede,602,1,601,601,0,0.000,0,0,600,10.017,250.417,600,2.304,4.923,14.824,-83.554,-86.000,-92
+teste_11mcom2paredes_2026-10-24_100725,11 m,11,2 paredes,489,1,600,488,112,18.667,0,116,599,8.133,203.333,487,3.252,12.532,21.697,-94.297,-96.000,-98
+teste_18mcomdiversasparedes_2026-10-24_101048,18 m,18,várias paredes,13,2,508,12,496,97.638,1,497,507,0.200,5.000,10,4.028,13.174,13.568,-95.273,-97.000,-97

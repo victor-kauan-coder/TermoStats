@@ -1,0 +1,14 @@
+seq_rtt=9336 tx_falhas=160 temp_c=20.7 umid_pct=52.5 descartad25 rssi=-95 rtt_us=25449 seq_rtt=10441 tx_falhas=552 temp_c=20.3 umid_pct=50.8 descartados_fila=0
+@PKT mac=3076F59110B4 seq=10446 bytes=25 rssi=-97 rtt_us=9448 seq_rtt=10445 tx_falhas=5510446 bytes=25 rssi=-97 rtt_us=9448 seq_rtt=10445 tx_falhas=552 temp_c=20.3 umid_pct=50.8 descartados_fila=0
+@PKT mac=3076F59110B4 seq=10756 bytes=25 rssi=-90 rtt_us=5723 seq_rtt=10446 tx_falhas=861 temp_c=20.2 umid_pct=50.3 descartados_fila=0
+@PKT mac=3076F59110B4 seq=10819 bytes=25 rssi=-94 rtt_us=8704 seq_rtt=10756 tx_falhas=923 temp_c=20.2 umid_pct=50.3 descartados_fila=0
+@PKT mac=3076F59110B4 seq=10820 bytes=25 rssi=-95 rtt_us=4767 seq_rtt=10819 tx_falhas=923 temp_c=20.2 umid_pct=50.3 descartados_fila=0
+@PKT mac=3076F59110B4 seq=10864 bytes=25 rssi=-95 rtt_us=4737 seq_rtt=10820 tx_falhas=967 temp_c=20.2 umid_pct=50.2 descartaos_fila=0
+@PKT mac=3076F59110B4 seq=11026 bytes=25 rssi=-94 rtt_us=7604 seq_rtt=10864 tx_falhas=112 temp_c=20.1 umid_pct=50.0 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11220 bytes=25 rssi=-96 rtt_us=27135 seq_rtt=11026 tx_falhas=1321 temp_c=20.1 umid_pct=49.7 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11221 bytes=25 rssi=-96 rtt_us=7409 seq_rtt=11220 tx_falhas=1321 temp_c=20.1 umid_pct=49.7 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11222 bytes=25 rssi=-97 rtt_us=4762 seq_rtt=11221 tx_falhas=1321 temp_c=20.1 umid_pct=49.7 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11223 bytes=25 rssi=-97 rtt_us=3746 seq_rtt=11222 tx_falhas=1321 temp_c=20.1 umid_pct=49.7 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11224 bytes=25 rssi=-95 rtt_us=12411 seq_rtt=11223 tx_falhas=1321 temp_c=20.1 umid_pct=49.7 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11252 bytes=25 rssi=-96 rtt_us=25384 seq_rtt=11224 tx_falhas=1348 temp_c=20.1 umid_pct=49.7 descartados_fila=0
+@PKT mac=3076F59110B4 seq=11263 bytes=25 rssi=-97 rtt_us=17563 seq_rtt=11252 tx_falhas=1358 temp_c=20.0 umid_pct=49.7 descartados_fila=0
