@@ -1,0 +1,123 @@
+% =====================================================================
+%  Apêndice F — Registro da campanha de coleta (existe a partir da AP2)
+%  Campanha remota de 19 a 25/10.
+% =====================================================================
+\chapter{Registro da campanha de coleta}
+\label{ap:campanha}
+
+\section*{Diário da campanha}
+\phantomsection
+\addcontentsline{toc}{section}{Diário da campanha}
+
+\begin{orientacao}
+Uma linha por acontecimento: instalação, cada queda, cada intervenção,
+cada vez que alguém mexeu no nó, no roteador ou no gravador, e o
+encerramento. A coluna \enquote{Como a equipe soube} é a que mostra se o
+monitoramento funcionou: \enquote{só descobrimos na volta} é resposta
+honesta, e ensina mais que uma tabela vazia.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{Diário da campanha de coleta}
+\label{tab:diario}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{2.4cm}L{4.6cm}L{3.4cm}L{3.6cm}@{}}
+\toprule
+\textbf{Data e hora} & \textbf{O que aconteceu} & \textbf{Como a equipe soube} & \textbf{O que a equipe fez} \\
+\midrule
+24/10 15:53:58 & nó \texttt{eq01-no02} instalado na escrivaninha e publicando; gravador iniciado para os testes de falha & \texttt{online} retido no CSV & testes \CT{09} a \CT{13} (Seção~\ref{sec:testes-ap2}) \\
+24/10 16:01:27 & fim dos testes de falha; gravador parado & --- & CSV dos testes movido para \texttt{dados/testes\_falha\_24-10-26/} \\
+24/10 16:01:36 & nó reiniciado: início da campanha & \texttt{seq} volta a 1 no CSV & --- \\
+24/10 16:10:14 & gravador ligado para a campanha, \SI{8,7}{\minute} depois do nó & terminal do gravador: lote de 100 leituras guardadas pelo \emph{broker}, chegando em \SI{3}{\second} & nada; as leituras entram na conta \\
+24/10 16:30 a 18:10 & nó conectando e caindo em ciclo: 695 \texttt{offline}, 40\,\% das leituras & durante a coleta, no terminal do gravador (João Pedro Saleh); comprovado depois no CSV & nada; o \emph{firmware} não foi mudado durante a campanha \\
+24/10 17:46 a 18:10 & pior trecho: 13 leituras em \SI{24}{\minute} & no CSV, depois da coleta & --- \\
+24/10 18:48:26 & fim da coleta; gravador parado com Ctrl+C & --- & \texttt{qualidade.py} e \texttt{grafico.py} sobre o arquivo final (18:51); CSV movido para \texttt{dados/campanha\_24-10-26/} \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe, a partir de
+  \texttt{dados/campanha\_24-10-26/resultados.md} e
+  \texttt{dados/testes\_falha\_24-10-26/README.md} (branch \texttt{lab3}).
+  Os horários dos testes de falha foram deduzidos do CSV.}
+\end{table}
+
+\section*{Registro de eventos para rotulagem}
+\phantomsection
+\addcontentsline{toc}{section}{Registro de eventos para rotulagem}
+
+\begin{orientacao}
+O que aconteceu \emph{no mundo} enquanto o nó media: a porta que abriu,
+o ventilador que ligou, o animal que entrou, a chuva que começou. Com
+hora. É deste registro que sai a rotulagem do conjunto de dados no
+Módulo 3 (04/11 e 16/11). Se o fenômeno não tem eventos (uma série
+contínua de temperatura, por exemplo), anote o que pode explicar
+mudanças bruscas na série.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{Eventos observados durante a coleta}
+\label{tab:eventos}
+\footnotesize
+\begin{tabular}{@{}L{2.6cm}L{2.6cm}L{5.4cm}L{3.4cm}@{}}
+\toprule
+\textbf{Início} & \textbf{Fim} & \textbf{Evento} & \textbf{Quem anotou, e como} \\
+\midrule
+16:01 & 16:35 & ar-condicionado do cômodo ligado; a temperatura cai devagar, de 25,7 para \SI{24,0}{\celsius} & João Pedro Saleh, no local \\
+16:35 & --- & \textbf{ar-condicionado desligado}; a temperatura sobe \SI{2}{\celsius} em \SI{6}{\minute} e não estabiliza até o fim (\SI{30,7}{\celsius}) & João Pedro Saleh, no local, com a hora do relógio \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe. O nó ficou fora do fluxo de ar do
+  aparelho e mediu o ar do cômodo. Não houve outro evento, e só
+  João Pedro Saleh esteve no cômodo durante a coleta.}
+\end{table}
+
+\section*{Saída do relatório de qualidade}
+\phantomsection
+\addcontentsline{toc}{section}{Saída do relatório de qualidade}
+
+\begin{orientacao}
+A saída completa do \texttt{qualidade.py} sobre o arquivo final, colada
+sem edição, com o comando que a gerou. É a evidência dos números da
+Tabela~\ref{tab:qualidade}.
+\end{orientacao}
+
+\begin{lstlisting}[style=terminal,
+  caption={Saída do \texttt{qualidade.py} sobre o arquivo final da campanha},
+  label={lst:qualidade}]
+$ python gravador/qualidade.py dados/campanha_24-10-26/mensagens.csv
+
+=== eq01-no02
+  leituras recebidas  1263   (seq 33 a 1264)
+  faltam (seq pulou)  2
+  repetidas           0
+  reinicios do no     1   (o seq voltou a 1)
+  atraso chegada-ts   mediana 1 s · maximo 523 s
+  esperadas           2003   (16:01:32 a 18:48:26, 166.9 min / 5 s)
+  completude          63.1%   (1263 unicas de 2003)
+  lacunas             138   (somam 4387 s)
+    17:52:52 a 18:02:22     570 s   ~113 leituras
+    18:02:22 a 18:06:28     246 s   ~48 leituras
+    17:46:13 a 17:50:02     229 s   ~45 leituras
+    17:50:02 a 17:52:52     170 s   ~33 leituras
+    16:49:02 a 16:51:51     169 s   ~33 leituras
+    17:00:03 a 17:01:47     104 s   ~20 leituras
+    18:06:33 a 18:08:12      99 s   ~19 leituras
+    18:08:48 a 18:10:22      94 s   ~18 leituras
+    17:09:19 a 17:10:39      80 s   ~15 leituras
+    17:18:13 a 17:19:32      79 s   ~15 leituras
+  status              offline 16:10:14  >  online 16:10:14  >  offline 16:10:14
+                      >  online 16:10:14  >  ...
+                      [1334 mensagens de status; a linha inteira tem 23 kB e
+                      esta em dados/campanha_24-10-26/qualidade_saida.txt]
+                      ...  >  offline 18:12:38  >  online 18:12:39
+                      >  offline 18:27:27  >  online 18:27:29
+\end{lstlisting}
+
+\noindent A saída está como o \emph{script} imprimiu, com uma exceção: a
+linha de \texttt{status}, uma única linha de 23\,kB com todas as
+transições \texttt{online}/\texttt{offline}, foi cortada no meio e
+quebrada para caber na página. A íntegra está no arquivo citado. O
+gráfico da Figura~\ref{fig:resultado} conta essas transições a cada
+\SI{10}{\minute}.

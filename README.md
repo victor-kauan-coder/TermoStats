@@ -1,31 +1,55 @@
-# TermoStats · AP2: nó MQTT e conjunto de dados
+# TermoStats · entrega da AP2 (equipe 01): nó MQTT e conjunto de dados
 
-Branch `lab3`. Um nó ESP32 com DHT22 publica temperatura e umidade por MQTT. Um gravador
-no computador assina os tópicos da equipe e guarda tudo num CSV. Com esses dados, a
-equipe provoca falhas de propósito (testes mínimos da AP2) e roda uma campanha de coleta.
-Os scripts dão a completude, as lacunas e a série temporal.
+Commit da entrega: o marcado com a tag `ap2` na branch `entrega-ap2` (`git checkout ap2`).
+Ele parte do commit `7b4482e` da branch `lab3`, o que rodou nos testes de falha e na
+campanha de 24/10/2026, e acrescenta as fontes do relatório e a integração com o servidor
+do produto.
+
+Um nó ESP32 com DHT22 publica temperatura e umidade por MQTT. Um gravador no computador
+assina os tópicos da equipe e guarda tudo num CSV. Com esses dados, a equipe provoca
+falhas de propósito (testes mínimos da AP2) e roda uma campanha de coleta. Os scripts dão
+a completude, as lacunas e a série temporal.
 
 ```
-wokwi/
-├── sketch/sketch.ino       firmware do nó (o mesmo no Wokwi e na placa)
+firmware/
+├── sketch/sketch.ino       firmware do nó (o mesmo no Wokwi e na placa; DHT22 no GPIO4)
 ├── sketch/secrets.example.h  modelo do secrets.h (o secrets.h não vai para o git)
 ├── platformio.ini          compila e grava o sketch na placa
-└── diagram.json            circuito do Wokwi (ESP32 + DHT22 no GPIO15)
+└── diagram.json            circuito do Wokwi (DHT22 no GPIO15: ver "Montar o nó")
 gravador/
 ├── gravador.py             assina os tópicos e grava dados/mensagens.csv
 ├── qualidade.py            recebidas, faltando, repetidas, completude e lacunas
 └── grafico.py              série temporal com as lacunas visíveis
 dados/
 ├── testes_falha_24-10-26/  testes mínimos da AP2 (CSV, saída do qualidade.py, eventos)
-└── campanha_24-10-26/      campanha (CSV, saída do qualidade.py, gráfico, resultados.md)
+└── campanha_24-10-26/      campanha (CSV bruto, saída do qualidade.py, gráfico, resultados.md)
+integracao/
+├── ponte_api.py            leva o CSV da campanha ao servidor do produto, em lotes (CT-16)
+├── resultado_25-10-26.md   resultado do teste da ponte contra a API
+└── conta_reconexoes.py     tempo de reconexão contado no CSV (CT-09)
+docs/                       fontes LaTeX do relatório técnico da AP2 (as que geraram o PDF)
 ```
+
+A pasta `firmware/` é a `wokwi/` da branch `lab3`, renomeada como pedem as instruções da
+AP2, sem mudança no conteúdo. O conjunto de dados é o CSV bruto do gravador, sem edição e
+sem versão limpa.
+
+As outras medições citadas no relatório ficam nas branches de trabalho, cada uma com o
+próprio README e os dados brutos:
+
+| Branch | Commit | O que tem |
+|---|---|---|
+| `apendice_b` | `f30a6de` | ferramenta da Aula 10: tempo do ciclo de rádio (Apêndice B), política de erro HTTP (CT-17) |
+| `teste-esp-now` | `affb704` | bateria de alcance e desempenho do ESP-NOW, com o DHT22 no pacote |
+| `teste-ble` | `f149308` | a mesma bateria com BLE |
+| `victor#sensores` | `c3642d4` | firmware da AP1 (`esp32_dht22.ino`): filtragem, alarme e deep sleep |
 
 ## Metodologia
 
 ### O sistema
 
 ```
-DHT22 ──GPIO15── ESP32 ──WiFi/TLS──> broker.hivemq.com:8883 ──TLS──> gravador.py ──> mensagens.csv
+DHT22 ──GPIO4── ESP32 ──WiFi/TLS──> broker.hivemq.com:8883 ──TLS──> gravador.py ──> mensagens.csv
 ```
 
 - **Nó:** a cada `periodo_s` (5 s), lê o DHT22 e publica um JSON com QoS 1 e sem reter:
@@ -84,23 +108,26 @@ DHT22 ──GPIO15── ESP32 ──WiFi/TLS──> broker.hivemq.com:8883 ─�
   ```powershell
   pip install paho-mqtt matplotlib
   ```
-- Copiar `wokwi/sketch/secrets.example.h` para `wokwi/sketch/secrets.h` e preencher o
+- Copiar `firmware/sketch/secrets.example.h` para `firmware/sketch/secrets.h` e preencher o
   WiFi. O ESP32 só conecta em rede de **2,4 GHz**. O broker já vem configurado
   (`broker.hivemq.com`, porta 8883, sem usuário).
-- Em `wokwi/sketch/sketch.ino`, conferir `EQUIPE = "eq01"` e `NO = "no02"` para a placa.
+- Em `firmware/sketch/sketch.ino`, conferir `EQUIPE = "eq01"` e `NO = "no02"` para a placa.
   No Wokwi, use `no01`: nunca rode os dois com o mesmo `NO`.
 
 ### 2. Montar o nó
 
-DHT22 ligado ao ESP32: VCC no **3V3**, GND no **GND** e dado no **GPIO15**. O sensor solto,
-de 4 pinos, precisa de um resistor de 10 kΩ entre o dado e o 3V3; o módulo de 3 pinos já
-tem o resistor.
+DHT22 ligado ao ESP32: VCC no **3V3**, GND no **GND** e dado no **GPIO4**, o pino que o
+`sketch.ino` lê (`PINO_DHT = 4`) e o mesmo da AP1. O sensor solto, de 4 pinos, precisa de
+um resistor de 10 kΩ entre o dado e o 3V3; o módulo de 3 pinos já tem o resistor.
+
+O `diagram.json` do Wokwi liga o DHT22 ao GPIO15. Para simular, troque `esp:15` por
+`esp:4` no `diagram.json`; como está, o DHT22 não é lido no Wokwi.
 
 ### 3. Gravar e conferir o nó
 
 ```powershell
 $pio = "$env:USERPROFILE\.platformio\penv\Scripts\pio.exe"
-cd wokwi
+cd firmware
 & $pio device list                               # descobre a porta (ex.: COM3)
 & $pio run -t upload --upload-port COM3          # se parar em "Connecting....", segure o BOOT
 & $pio device monitor -p COM3                    # 115200; Ctrl+C para sair
@@ -182,6 +209,11 @@ Com a saída do `qualidade.py`, o gráfico e o registro de eventos, escreva o
   - Houve duas fases estáveis (~96%) e uma degradada, das 16:30 às 18:10 (40%), com o nó
     reconectando a cada poucos segundos.
   - A temperatura foi de 24,0 a 30,7 °C depois que o ar-condicionado foi desligado, às 16:35.
+  - Nas 553 quedas da conexão com o broker, o nó voltou sozinho em 3,5 s na mediana, e
+    552 delas em até 30 s:
+    ```powershell
+    python integracao\conta_reconexoes.py dados\campanha_24-10-26\mensagens.csv --lote 16:10:14 16:10:17
+    ```
 
 ## Limitações conhecidas
 

@@ -1,0 +1,63 @@
+% =====================================================================
+%  Apêndice D — Declaração de uso de IA generativa
+% =====================================================================
+\chapter{Declaração de uso de inteligência artificial generativa}
+\label{ap:ia}
+
+\begin{orientacao}
+Atualizem a declaração para este ciclo: as linhas abaixo vêm da AP1,
+mais a linha da migração do relatório para o modelo da AP2. Acrescentem
+o uso no \emph{firmware} de comunicação, no gravador ou na análise dos
+dados, se houver, e confirmem que todos os integrantes leram a
+declaração.
+\end{orientacao}
+
+{\footnotesize \setlength{\tabcolsep}{3.5pt}
+\begin{longtable}{@{}L{3.4cm}L{3.2cm}L{5.0cm}L{3.6cm}@{}}
+\caption{Uso de IA generativa neste ciclo}\label{tab:ia}\\
+\toprule
+\textbf{Etapa} & \textbf{Ferramenta} & \textbf{Para quê} & \textbf{O que a equipe verificou} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape Tabela~\ref{tab:ia} --- continuação}\\
+\toprule
+\textbf{Etapa} & \textbf{Ferramenta} & \textbf{Para quê} & \textbf{O que a equipe verificou} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{@{}r}{\footnotesize\itshape continua na próxima página}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Consulta de erros     & Claude (Anthropic) & Interpretar mensagens de erro de compilação, da biblioteca MQTT, do PlatformIO e dos \emph{scripts} em Python durante o Lab~03, as baterias de rádio e a campanha & a correção foi aplicada e testada pela equipe na placa ou no \emph{script} \\
+Auxílio no código     & Claude (Anthropic) & Sugerir trechos e ajustes no \emph{firmware} de comunicação, nos gravadores, no \texttt{qualidade.py}/\texttt{grafico.py} e na ponte com a API do produto (\texttt{integracao/ponte\_api.py}), a partir do que a equipe pedia & todo trecho usado foi lido, compilado e exercitado nos testes de falha e na campanha; nenhum foi aceito sem passar por eles \\
+Auxílio na montagem do relatório & Claude (Anthropic) & Transpor o texto da AP1 para o modelo da AP2, organizar o texto em LaTeX, cruzar os repositórios para achar números e referências inconsistentes, desenhar as Figuras~\ref{fig:arquitetura} e~\ref{fig:caminho} a partir das decisões da equipe, corrigir a diagramação das tabelas e conferir o relatório contra as instruções de entrega da AP2 & números conferidos contra os dados brutos e o texto revisado pela equipe \\
+Análise dos dados & Claude (Anthropic) & Escrever o \emph{script} \texttt{integracao/conta\_reconexoes.py} e, com ele, contar no CSV da campanha o tempo de reconexão das 553 quedas (\CT{09}); rodar de novo os testes automatizados dos gravadores (Seção~\ref{sec:testes-ap2}) & os números saem do CSV bruto e se reproduzem com o comando do \texttt{README.md} \\
+Redação de seções & Claude (Anthropic) & Redigir, a partir dos dados das branches e das decisões da equipe, o \CT{17}, as Seções~\ref{sec:firmware-http} e~\ref{sec:espnow-bancada}, o parágrafo dos testes automatizados e a nova redação da \DP{8} e das passagens sobre o LoRa, depois de a equipe decidir manter o LoRa no produto & texto revisado pela equipe; a decisão de manter o LoRa e o julgamento sobre o ESP-NOW são da equipe \\
+Revisão de texto      & Claude (Anthropic) & Corrigir erros de português e de formatação & conteúdo técnico e conclusões conferidos pela equipe \\
+Busca de referências  & Claude (Anthropic) + Google Scholar/SciELO & Localizar artigos correlatos, combinando sugestões da IA com busca direta nas plataformas & fontes conferidas na origem \\
+Não houve uso em      & \multicolumn{3}{L{11.8cm}}{Ideação do projeto, definição da arquitetura, decisões de projeto (\DP{1} a \DP{8}: a redação teve auxílio, as decisões não), planejamento e execução dos testes, da campanha e das baterias de rádio, e coleta dos dados --- que são de autoria exclusiva da equipe.} \\
+\end{longtable}
+\vspace{-0.6\baselineskip}
+\fonte{Elaborada pela equipe.}
+}
+
+\vspace{0.6cm}
+
+\noindent\textbf{Declaração.} A equipe declara que a ideia original do
+projeto, a organização do trabalho e as decisões de arquitetura são de
+autoria dos integrantes; a inteligência artificial foi usada apenas como
+ferramenta de apoio --- consulta de erros, auxílio no código, na análise
+dos dados e na montagem e redação do relatório ---, nunca para substituir a ideação, as decisões
+ou os testes, que foram todos feitos pela equipe. A equipe declara ainda que o conteúdo deste relatório e do
+código a ele associado foi revisado e é compreendido por todos os
+integrantes, e que todo uso de ferramentas de inteligência artificial
+generativa está registrado na tabela acima.
+
+\vspace{1.2cm}
+
+\imprimirTabelaIntegrantes
+
+\vspace{1.4cm}
+
+\noindent\localEntrega, \dataEntrega.

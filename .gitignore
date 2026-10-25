@@ -1,0 +1,24 @@
+# pacotes e PDFs gerados fora do repositório (o PDF vai pelo SIGAA)
+*.zip
+# artefatos de compilação do relatório (docs/)
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+docs/*.lof
+docs/*.lot
+docs/*.lol
+docs/*.bbl
+docs/*.blg
+docs/*.brf
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+docs/main.pdf
+# Python e PlatformIO
+__pycache__/
+*.pyc
+.pio/
+.vscode/
+observações.txt
+CONSOLIDADO-TermoLOG-AP2.md

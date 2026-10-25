@@ -1,0 +1,206 @@
+% =====================================================================
+%  Capítulo 2 — Requisitos e critérios de aceitação
+% =====================================================================
+\chapter{Requisitos e critérios de aceitação}
+\label{cap:requisitos}
+\rubricaRobustez
+
+\begin{orientacao}
+Requisito sem critério de aceitação é desejo. A coluna
+\enquote{critério de aceitação} é a mais importante das tabelas abaixo:
+ela precisa conter um \textbf{número} e um \textbf{procedimento} --- algo
+que qualquer pessoa da turma consiga executar para dizer, sem discussão,
+se o requisito foi cumprido. Todo requisito listado aqui reaparece no
+Capítulo~\ref{cap:testes} com um caso de teste correspondente.
+\end{orientacao}
+
+\section{Requisitos funcionais}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do \nomeciclo}
+\label{tab:rf}
+\footnotesize
+\begin{tabular}{@{}L{1.5cm}L{6.0cm}L{6.4cm}@{}}
+\toprule
+\textbf{ID} & \textbf{O sistema deve:} & \textbf{Critério de aceitação} \\
+\midrule
+RF-01 & medir temperatura e umidade relativa a cada 10 min
+      & intervalo de 10 min $\pm$ 10\,\% em 20 ciclos consecutivos \\
+RF-02 & comparar cada leitura contra uma faixa de referência
+        (mínimo e máximo) configurável por ambiente
+      & faixa alterável sem recompilar o \emph{firmware}; 10 mudanças
+        de faixa em 10 tentativas, verificadas em bancada \\
+RF-03 & acionar alarme sonoro e visual local quando a temperatura ou a
+        umidade saírem da faixa configurada
+      & 10 disparos em 10 ensaios com leitura fora da faixa \\
+RF-04 & cessar o alarme quando a leitura retornar à faixa configurada
+      & alarme cessa em até 1 ciclo de leitura (10 min) após o retorno \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Requisitos de comunicação e de dados (AP2)}} \\
+\midrule
+RF-05 & publicar cada leitura no \emph{broker} MQTT, no tópico de
+        telemetria e no formato do contrato de dados
+        (Seção~\ref{sec:contrato-dados}), a cada \texttt{periodo\_s}
+        (\SI{5}{\second} na campanha), com QoS~1
+      & 100 mensagens consecutivas no CSV do gravador com intervalo
+        de \texttt{periodo\_s} $\pm$ 10\,\%; zero mensagens fora do contrato no
+        \texttt{qualidade.py} \\
+RF-06 & reconectar sozinho à rede e ao \emph{broker} depois de uma queda,
+        guardando as leituras do período em uma fila local
+      & roteador desligado por \SI{2}{\minute}: nó volta a publicar
+        sozinho em até \SI{30}{\second} depois que o roteador volta
+        (reassociação, DHCP de $\approx$\SI{1,5}{\second}, tentativa do
+        \emph{broker} a cada \SI{5}{\second} e TLS), e as leituras do
+        período chegam ao CSV, em 1 de 1 ensaio \\
+RF-07 & indicar no tópico \texttt{status} que está \texttt{online} ao
+        conectar e \texttt{offline} quando cai sem avisar (testamento)
+      & alimentação cortada: \texttt{offline} aparece em até \SI{45}{\second}
+        ($1{,}5 \times$ o \emph{keepalive} de \SI{30}{\second}), cronometrado no MQTT
+        Explorer ou no CSV do gravador, em 1 de 1 ensaio \\
+RF-08 & identificar cada leitura por \texttt{id}, \texttt{boot},
+        \texttt{seq} e \texttt{ts} (hora do NTP)
+      & após reinício pelo botão EN, \texttt{boot} muda e o
+        \texttt{qualidade.py} não acusa duplicata nem perda falsa;
+        leituras anteriores ao NTP saem com \texttt{ts} \texttt{null} e
+        são contadas \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\section{Requisitos não funcionais}
+
+\begin{orientacao}
+Aqui entram autonomia, tempo de resposta, faixa de operação, custo,
+robustez a falta de energia e facilidade de manutenção. Cada um com
+número. \enquote{Deve ter baixo consumo} não é requisito;
+\enquote{deve operar 7 dias com uma bateria de \SI{2600}{\mAh}} é, e é
+verificável contra o Apêndice~\ref{ap:energia}.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não funcionais}
+\label{tab:rnf}
+\footnotesize
+\begin{tabular}{@{}L{1.5cm}L{4.6cm}L{3.2cm}L{4.1cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Atributo} & \textbf{Valor alvo} & \textbf{Como se verifica} \\
+\midrule
+RNF-01 & Autonomia do nó de borda sem rede elétrica & $\geq$ \SI{30}{dias} com uma 18650 de \SI{2600}{\mAh}, contando o rádio (o alvo da AP1, que só tinha o sensoriamento) & Apêndice~\ref{ap:energia}, com o custo medido do rádio (Seção~\ref{sec:custo-radio}), + \CT{07}; sem bateria de teste \\
+RNF-02 & Latência entre leitura fora da faixa e alarme & $\leq$ \SI{2}{\second} (observado: $\approx$\SI{5}{\second}) & \CT{03}, cronometrado \\
+RNF-03 & Custo de materiais por ponto de medição & $\leq$ R\$\,150,00 & lista da Seção~\ref{sec:bom} \\
+RNF-04 & Faixa de operação do sensor & conforme folha de dados do DHT22 & \folhadedados{} + ensaio nos extremos da faixa (não feito) \\
+RNF-05 & Robustez à interferência eletromagnética de aparelhos de climatização próximos & leitura estável (sem \emph{outlier}) com o compressor/ar-condicionado em operação & \CT{14} (campanha, com o ar-condicionado ligado); ensaio dedicado junto ao compressor pendente \\
+RNF-06 & Alcance entre o nó e o primeiro ponto com internet (Seção~\ref{sec:local}) & RSSI p10 $\geq$ \SI{-86}{dBm} no ponto de instalação, com o nó a até \SI{8}{\metre} e uma parede de alvenaria do ponto de acesso (bateria de 24/10: sem perda até esse nível) & \CT{15}, RSSI medido por \SI{10}{\minute} no ponto antes de fixar o nó \\
+RNF-07 & Completude do conjunto de dados na campanha & $\geq$ 95\,\% das leituras esperadas & \texttt{qualidade.py} (Seção~\ref{sec:qualidade}) + \CT{14} \\
+RNF-08 & Tolerância à parada do gravador & nenhuma leitura perdida com o gravador parado por até 10\,min (sessão persistente) & \CT{12} \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\section{Restrições}
+
+\begin{orientacao}
+O que está fora do controle da equipe e limita o projeto: ausência de
+rede elétrica no local, distância até o ponto de acesso, componentes
+disponíveis no laboratório, prazo do ciclo, temperatura ambiente de
+Teresina. Restrição declarada aqui é justificativa aceita depois;
+restrição descoberta na apresentação é desculpa.
+\end{orientacao}
+
+\begin{itemize}
+  \item os nós de borda, quando instalados dentro de freezers ou junto a
+    câmaras frias, dependem de bateria: a fiação até a rede elétrica
+    nem sempre é viável nesses pontos;
+  \item o acesso aos ambientes monitorados é restrito a funcionários com
+    equipamento de proteção individual adequado, o que limita a
+    frequência de manutenção e recalibração do protótipo;
+  \item cada ambiente monitorado tem sua própria faixa aceitável de
+    temperatura e umidade (uma sala de manipulação farmacêutica não
+    tem a mesma exigência que uma câmara fria de alimentos ou uma sala
+    de equipamentos de TI), o que exige que o limiar seja configurável
+    e não fixo em \emph{firmware};
+  \item a proximidade de compressores e de aparelhos de ar-condicionado
+    introduz interferência eletromagnética e variação térmica rápida
+    junto ao ponto de instalação;
+  \item em ambientes de temperatura extrema (muito fria ou muito
+    quente), os componentes eletrônicos do próprio nó podem operar fora
+    da faixa especificada pelo fabricante;
+  \item \textbf{(AP2)} a distância e as paredes entre o ponto de
+    instalação e o roteador da farmácia não são conhecidas: a planta não
+    foi levantada, porque o acesso às áreas monitoradas é restrito
+    (Seção~\ref{sec:local}). Em \SI{2,4}{\giga\hertz}, cada parede de
+    alvenaria custou cerca de \SI{6}{\deci\bel} na bateria de 24/10, e com
+    duas paredes a \SI{11}{\metre} o enlace já perdeu 18,7\,\% dos
+    pacotes; a porta e as paredes metálicas de um freezer ou câmara fria
+    devem atenuar mais, e isso não foi medido;
+  \item \textbf{(AP2)} a rede disponível no cenário de referência é o
+    WiFi do próprio estabelecimento, de terceiros: instalar exige as
+    credenciais e a permissão dos proprietários, que a equipe ainda não
+    tem, e uma rede com portal de acesso (\emph{captive portal})
+    impediria o ESP32 de se associar sem código adicional; no produto, só
+    o nó central depende dessa rede;
+  \item \textbf{(AP2)} o hardware do protótipo foi comprado pela própria
+    equipe, e o módulo LoRa encomendado não chegou a tempo: a matriz de
+    decisão aponta LoRa/LoRaWAN --- a candidata citada na AP1 ---, mas a
+    campanha deste ciclo foi feita com o rádio WiFi do ESP32, e o enlace
+    LoRa fica para quando o módulo chegar;
+  \item \textbf{(AP2)} a campanha de coleta é remota e ocorre entre 19 e
+    25/10, o que limita a duração máxima da série e o número de ciclos
+    diários que ela pode mostrar.
+\end{itemize}
+
+\section{Rastreabilidade}
+\label{sec:rastreabilidade}
+% AP2: as linhas RF-01 a RNF-05 trazem a situação ao fim da AP1. Atualizem
+% a coluna "Situação" depois dos testes deste ciclo.
+
+\begin{orientacao}
+Uma linha por requisito, ligando-o à seção que descreve como ele foi
+atendido e ao caso de teste que o verifica. Esta tabela é o que permite
+ao leitor conferir o relatório inteiro em dois minutos --- e é o que a
+equipe usa, na véspera da entrega, para descobrir qual requisito ficou
+sem implementação.
+\end{orientacao}
+
+{\footnotesize
+\begin{longtable}{@{}L{1.8cm}L{3.6cm}L{2.2cm}L{6.0cm}@{}}
+\caption{Rastreabilidade entre requisitos, implementação e testes}\label{tab:rastreabilidade}\\
+\toprule
+\textbf{Requisito} & \textbf{Onde foi atendido} & \textbf{Caso de teste} & \textbf{Situação} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape Tabela~\ref{tab:rastreabilidade} --- continuação}\\
+\toprule
+\textbf{Requisito} & \textbf{Onde foi atendido} & \textbf{Caso de teste} & \textbf{Situação} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{@{}r}{\footnotesize\itshape continua na próxima página}\\
+\endfoot
+\bottomrule
+\endlastfoot
+RF-01  & Seção~\ref{sec:firmware} & \CT{01} & atendido (estimado) --- 100 ciclos seguidos sem falha em modo acelerado; com a parte ativa deduzida do ensaio ($\approx$\SI{8,7}{\second}) e o sono de \SI{600}{\second}, o ciclo fica em $\approx$\SI{608,7}{\second}, 1,5\,\% acima de \SI{10}{\minute}, dentro dos $\pm$10\,\% \\
+RF-02  & Seção~\ref{sec:firmware}  & \CT{02}, \CT{06} & parcial --- a faixa gravada sobrevive ao reinício (\CT{06}), mas a troca de faixa falhou em bancada (\CT{02}) \\
+RF-03  & Seção~\ref{sec:firmware}  & \CT{03} & parcial --- dispara corretamente, mas latência acima da meta \\
+RF-04  & Seção~\ref{sec:firmware}  & \CT{04} & parcial --- constatado informalmente, sem log formal \\
+RNF-01 & Apêndice~\ref{ap:energia}, Seção~\ref{sec:custo-radio} & \CT{07} & parcial --- com o nó central e LoRa (\DP{6}), $\approx$29 dias estimados pela folha de dados, perto do alvo; com WiFi direto, 21 dias medidos no tempo de rádio; sem ensaio com bateria real \\
+RNF-02 & Seção~\ref{sec:firmware}  & \CT{03} & não atendido --- meta de \SI{2}{\second}, observado $\approx$\SI{5}{\second} no monitor serial, sem cronômetro externo \\
+RNF-03 & Seção~\ref{sec:bom}       & --      & atendido no protótipo montado --- R\$\,105,20 $\leq$ R\$\,150,00; com o módulo LoRa do produto, R\$\,145,20 a 165,20 (\estimativa), no limite do teto \\
+RNF-04 & Seção~\ref{sec:sinal}     & --      & não testado --- nenhum ensaio nos extremos da faixa do sensor (o \CT{05}, sensor desconectado, é teste de robustez) \\
+RNF-05 & Seção~\ref{sec:sinal}, Seção~\ref{sec:dataset} & \CT{14} & parcial --- na campanha, \SI{33}{\minute} com o ar-condicionado ligado no cômodo e nenhum salto entre leituras consecutivas, mas sem ensaio dedicado e com o nó fora do fluxo de ar \\
+\midrule
+RF-05  & Seções~\ref{sec:firmware-com} e~\ref{sec:contrato-dados} & \CT{08} & atendido --- 439 leituras seguidas a cada \SI{5}{\second}; nenhuma fora do contrato \\
+RF-06  & Seção~\ref{sec:firmware-com}  & \CT{09} & parcial --- reconecta sozinho: nas 553 quedas da conexão com o \emph{broker} na campanha, o \texttt{online} voltou em \SI{3,5}{\second} na mediana e em até \SI{30}{\second} em 552 delas; depois da queda do roteador, a volta foi estimada em $\approx$\SI{8}{\second}. Não há fila local: a queda de \SI{101}{\second} perdeu cerca de 19 leituras \\
+RF-07  & Seções~\ref{sec:firmware-com} e~\ref{sec:topicos} & \CT{10} & atendido --- \texttt{offline} publicado pelo \emph{broker} entre 40 e \SI{45}{\second} depois do corte (\SI{46}{\second} depois da última leitura no CSV, menos o trânsito de $\approx$\SI{1}{\second} até o gravador) \\
+RF-08  & Seções~\ref{sec:firmware-com} e~\ref{sec:contrato-dados} & \CT{11}, \CT{13} & parcial --- \texttt{id}, \texttt{seq} e \texttt{ts} certos, nenhum \texttt{ts} nulo; falta o \texttt{boot} \\
+RNF-06 & Seções~\ref{sec:local} e~\ref{sec:tecnologia} & \CT{15} & atendido --- no ponto onde o nó foi instalado neste ciclo, RSSI de \SI{-15}{} a \SI{-29}{dBm}, mais de \SI{55}{\deci\bel} acima do mínimo, com o roteador no mesmo ambiente; regra medida em ambiente de teste (24/10). A farmácia não foi medida \\
+RNF-07 & Seção~\ref{sec:qualidade}     & \CT{14} & não atendido --- completude de 63,1\,\% (96\,\% nas fases estáveis) \\
+RNF-08 & Seção~\ref{sec:topicos}       & \CT{12} & parcial --- \SI{8,7}{\minute} de gravador parado sem perda; os \SI{10}{\minute} da meta não foram ensaiados \\
+\end{longtable}
+\vspace{-0.6\baselineskip}
+\fonte{Elaborada pela equipe.}
+}

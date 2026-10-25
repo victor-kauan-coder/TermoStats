@@ -1,0 +1,67 @@
+% =====================================================================
+%  Apêndice E — Checklist de prontidão (existe a partir da AP2)
+%  Instrumento do Laboratório 03 (30/09), entregue em 06/10.
+% =====================================================================
+\chapter{Checklist de prontidão para a campanha}
+\label{ap:checklist}
+
+\begin{orientacao}
+Transcreva o checklist entregue em 06/10 e \textbf{acrescente a última
+coluna}: o que a campanha mostrou sobre cada item. Um item marcado
+\enquote{sim} em 06/10 que falhou durante a coleta não é motivo de
+vergonha; é exatamente o que este apêndice existe para registrar.
+
+A regra continua a mesma: item sem evidência é item não feito. Evidência
+é um trecho de código com o \emph{commit}, uma linha do monitor serial,
+o histórico do MQTT Explorer ou uma saída do \texttt{qualidade.py}.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{Checklist de prontidão e o que a campanha mostrou}
+\label{tab:checklist}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}C{0.5cm}L{4.4cm}L{4.4cm}C{1.0cm}L{4.1cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Item} & \textbf{Evidência} & \textbf{Feito?} & \textbf{Na campanha} \\
+\midrule
+1  & Laço sem \texttt{delay()} longo & \texttt{loop()} do \texttt{sketch.ino} (Listagem~\ref{lst:laco-com}): período por \texttt{millis()}, leitura única do DHT22 & sim & \num{1120} dos \num{1262} intervalos entre leituras foram de exatamente \SI{5}{\second}; nenhum reinício pelo \emph{watchdog} \\
+2  & Keepalive escolhido e justificado & \texttt{setKeepAlive(30)}: nó morto visível em $\approx$\SI{45}{\second} (Seção~\ref{sec:topicos}) & sim & \texttt{offline} \SI{46}{\second} depois da última leitura (\CT{10}) \\
+3  & \texttt{status} \texttt{online} ao ligar e \texttt{offline} quando o nó cai sem avisar & \texttt{setWill(tStatus,\,\textquotedbl offline\textquotedbl,\,true,\,1)} e \texttt{publish(tStatus,\,\textquotedbl online\textquotedbl,\,true,\,1)} & sim & funcionou, e foi o que revelou a fase degradada: 764 \texttt{offline} e 570 \texttt{online} \\
+4  & O nó reconecta sozinho ao WiFi e ao \emph{broker} & WiFi pelo \emph{core}; \emph{broker} a cada \SI{5}{\second} & sim & reconectou sozinho em todas as 764 quedas, sem intervenção; mas, na fase B, caía em segundos \\
+5  & Contrato com \texttt{id}, \texttt{boot}, \texttt{seq}, \texttt{ts} e unidade no nome das chaves & \texttt{publicaTelemetria()}; Tabela~\ref{tab:contrato-dados} & parcial & sem \texttt{boot}; \texttt{temp\_c}, \texttt{umid\_pct} e \texttt{rssi\_dbm} com a unidade no nome \\
+6  & Um reinício não gera duplicatas nem perdas falsas & \texttt{qualidade.py} separa trechos quando o \texttt{seq} volta a 1 ou 2 & parcial & 0 duplicatas e 0 perdas falsas nos 3 reinícios; a chave (\texttt{id}, \texttt{seq}) erraria 1 leitura na campanha e 8 nos testes (\CT{11}) \\
+7  & O \texttt{ts} sai certo; a equipe sabe o que acontece antes do NTP & \texttt{ts} \texttt{null} se \texttt{time()} $<$ \texttt{1700000000} & sim & 0 leituras sem hora (\CT{13}); atraso mediano de \SI{0,8}{\second} entre \texttt{ts} e chegada \\
+8  & O que o nó faz sem \emph{broker}: tamanho da fila e o que se perde depois & sem fila: sem \emph{broker}, o nó não mede & não & $\approx$740 leituras perdidas de vez; foi o item que mais pesou na completude (63,1\,\%) \\
+9  & Onde roda o gravador e o que acontece se ele parar & computador da equipe; sessão persistente e \emph{client ID} fixo & sim & ligado \SI{8,7}{\minute} depois do nó, recebeu as 100 leituras guardadas (\CT{12}) \\
+10 & Política de \emph{flush} e o que se aceita perder & \texttt{arquivo.flush()} a cada mensagem & sim & o gravador não caiu; no pior caso, perderia a linha em curso \\
+11 & \texttt{secrets.h} fora do repositório & \texttt{firmware/sketch/.gitignore}; só o \texttt{secrets.example.h} no \emph{commit} & sim & nenhum \texttt{secrets.h} em nenhuma branch (\texttt{git log -{}-all}) \\
+12 & Teste de fumaça sem perdas, ou com as perdas explicadas & testes de falha de 24/10 (Seção~\ref{sec:testes-ap2}) & sim & as perdas dos testes foram explicadas; as da fase B, só por hipótese \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe, a partir do checklist entregue em
+  06/10/2026. A coluna \enquote{Feito?} traz a situação no \emph{commit}
+  da campanha (\texttt{7b4482e}). A planilha preenchida em 06/10 não
+  foi arquivada no repositório; por isso a tabela não traz uma coluna
+  com as respostas daquela data, e cada \enquote{sim} acima vem com a
+  evidência no código ou nos dados.}
+\end{table}
+
+\section*{O que o checklist não pegou}
+\phantomsection
+\addcontentsline{toc}{section}{O que o checklist não pegou}
+
+\begin{orientacao}
+Uma ou duas linhas: a falha da campanha que nenhum dos doze itens
+previa. Se não houve nenhuma, diga qual item da tabela a equipe acha que
+foi testado com menos rigor.
+\end{orientacao}
+
+Nenhum dos doze itens previa que a conexão com o \emph{broker} pudesse
+cair e voltar em segundos, por 1\,h\,40\,min, com o rádio forte. Os
+itens 3 e 4 verificam que o nó \emph{avisa} quando cai e que
+\emph{volta} sozinho, e os dois funcionaram, mas nenhum item pergunta
+quanto tempo a conexão fica de pé. O item testado com menos rigor foi o
+8: a resposta \enquote{não há fila} já era conhecida antes da campanha,
+e foi ela que transformou cada queda em leitura perdida.

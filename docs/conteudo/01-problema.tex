@@ -1,0 +1,255 @@
+% =====================================================================
+%  Capítulo 1 — O problema
+% =====================================================================
+\chapter{O problema}
+\label{cap:problema}
+\rubricaJustificativa
+
+\begin{orientacao}
+Este capítulo tem uma única função: convencer quem lê de que o sistema
+descrito nos capítulos seguintes resolve um problema que existe fora da
+sala de aula. Duas a três páginas bastam. Se a equipe não consegue
+escrever este capítulo sem falar de sensor, placa ou protocolo, o
+problema ainda não foi definido --- foi escolhida uma solução e
+procurado um problema para ela.
+\end{orientacao}
+
+\section{Contexto}
+
+\begin{orientacao}
+Onde o problema acontece, com quem, e há quanto tempo. Se algum
+integrante tem acesso real a esse contexto (a propriedade rural, o
+laboratório, o galpão, a residência), diga isso aqui e diga com quem a
+equipe conversou. Uma conversa de quinze minutos com quem convive com o
+problema vale mais que três parágrafos de citação genérica sobre o
+crescimento da IoT.
+\end{orientacao}
+
+Ambientes que dependem de faixas estreitas de temperatura e umidade ---
+salas de manipulação farmacêutica, câmaras frias de alimentos, salas de
+equipamentos de TI --- ainda são, em grande parte, monitorados à mão. A
+equipe conversou com um associado que atua na área comercial e de
+gestão logística de uma farmácia de manipulação, e esse estabelecimento
+foi adotado como cenário de teste do projeto. Ali, o controle de
+temperatura e umidade é exigido pela RDC 67/ANVISA e é hoje inteiramente
+manual: os farmacêuticos responsáveis técnicos consultam termômetros
+espalhados pela sala --- inclusive dentro do freezer, em alguns pontos
+--- e anotam o horário e a leitura em uma folha fixada na parede. A
+verificação ocorre a cada hora, em turnos de 12 horas, o que resulta em
+doze checagens manuais por dia. Os registros são depois consolidados em
+relatórios e arquivados em gavetas, para eventual auditoria.
+
+O mesmo problema de fundo --- ausência de registro contínuo e de
+sinalização automática de desvio --- se repete em outros ambientes
+controlados, como câmaras frias de estabelecimentos alimentícios e
+salas de equipamentos de TI, o que motivou a equipe a projetar uma
+solução que não fosse específica de um único segmento.
+
+\section{Pergunta de projeto}
+
+\begin{orientacao}
+A pergunta no formato \enquote{Como podemos\ldots?} que a equipe entregou
+em 24/08, já refinada pela mentoria de 14/09. Uma frase, em destaque.
+Ela precisa ser específica o bastante para que se possa dizer, ao fim do
+ciclo, se foi respondida ou não.
+\end{orientacao}
+
+\begin{quote}
+\textbf{Como podemos} capturar as informações de temperatura e umidade
+de uma sala e enviar para um servidor central, que reúne os dados dos
+nós distribuídos e mostra a situação atual do local, \textbf{para} os
+responsáveis por ambientes críticos \textbf{de modo que} a condição de
+cada sala seja conhecida e sinalizada sem depender de rondas manuais
+\textbf{?}
+\end{quote}
+
+A pergunta evoluiu desde a proposta inicial, que falava em avisar os
+responsáveis \enquote{pelo celular}. Ao considerar os aspectos de
+infraestrutura, capacidade e limitação dos sensores disponíveis, a
+equipe percebeu que o envio remoto pressupõe um nó de borda que já
+funcione de forma confiável isoladamente --- e foi isso que o primeiro
+ciclo (AP1) construiu. Este segundo ciclo responde à outra metade da
+pergunta: o envio das leituras a um ponto central por uma
+infraestrutura de comunicação, e a formação, a partir delas, do
+conjunto de dados do projeto.
+
+\section{Quem usa o sistema, e o que muda para essa pessoa}
+
+\begin{orientacao}
+Descreva a pessoa concreta que vai conviver com o protótipo. O que ela
+faz hoje, quanto tempo gasta nisso, o que ela deixa de fazer quando o
+sistema funcionar. Esta seção é a que transforma o projeto em requisito
+--- a maior parte dos requisitos do Capítulo~\ref{cap:requisitos} deveria
+ser derivável daqui.
+\end{orientacao}
+
+A usuária de referência é a farmacêutica responsável técnica pela sala
+de manipulação, que responde legalmente pela conformidade do ambiente
+perante a fiscalização da ANVISA e cuida hoje de uma farmácia mais uma
+filial. Ela é metódica e desconfia de processo manual, mas é justamente
+o processo manual --- termômetro de gancho, planilha, caderno de
+controle e o alarme do próprio celular --- que ela tem à disposição.
+Sua necessidade central não é visualizar um gráfico bonito: é poder
+garantir, a qualquer momento e sem correria na véspera de uma
+fiscalização, que a fórmula manipulada seguiu a faixa de temperatura
+exigida. Hoje isso depende de ela lembrar de checar o termômetro doze
+vezes por dia; com o sistema instalado, a sinalização de desvio deixa
+de depender da sua ronda e passa a ser automática e imediata, no
+próprio ambiente.
+
+\section{Onde o nó fica, e onde está a internet}
+\label{sec:local}
+
+\begin{orientacao}
+Novo na AP2. Diga onde o nó fica instalado e onde está o primeiro ponto
+com internet (roteador, \emph{gateway}, torre de celular): é dessa
+distância, e do que há entre os dois pontos (paredes, porta de câmara
+fria, laje), que sai o requisito de alcance do
+Capítulo~\ref{cap:requisitos} e a primeira linha da matriz de decisão
+da Seção~\ref{sec:tecnologia}. Se a campanha de coleta foi feita em
+outro lugar que não o cenário de referência, descreva os dois e diga a
+diferença.
+\end{orientacao}
+
+No cenário de referência --- a farmácia de manipulação descrita na
+Cap.~\ref{cap:problema} ---, os pontos que hoje recebem termômetro são
+a própria sala de manipulação e o interior do freezer. O nó do
+TermoLOG fica na parede da sala de manipulação, no lugar do termômetro
+de gancho que a farmacêutica consulta hoje, longe da saída do
+ar-condicionado; o freezer é o segundo ponto, e o mais difícil para o
+rádio. O primeiro ponto com internet é o roteador WiFi do
+estabelecimento. \textbf{A planta da farmácia não foi levantada}: a
+posição do roteador, a distância até a sala e as paredes no caminho não
+são conhecidas, pelo mesmo motivo que tirou a campanha de lá (acesso
+restrito às áreas monitoradas). Por isso o requisito de alcance não sai
+de uma distância medida no local, e sim de uma \textbf{regra de
+instalação} tirada das medições da equipe: o nó pode ficar a até
+\SI{8}{\metre} e uma parede de alvenaria do ponto de acesso, e o RSSI é
+conferido no ponto antes de fixá-lo (\RNF{06}).
+
+O que a equipe já mediu é quanto cada obstáculo custa em
+\SI{2,4}{\giga\hertz}, com o próprio rádio do ESP32, em um ambiente
+interno de teste (bateria de 24/10, Seção~\ref{sec:tecnologia}): duas
+portas de madeira custaram cerca de \SI{2,6}{\deci\bel}, uma parede de
+alvenaria cerca de \SI{6}{\deci\bel}, e o enlace deixou de ser
+confiável a partir de duas paredes ou de \SI{11}{\metre}. Desses números
+sai a regra de instalação do \RNF{06}: RSSI p10 de pelo menos
+\SI{-86}{dBm} no ponto do nó, o p10 do último ponto sem perda
+(\SI{8}{\metre} e uma parede), medido antes de fixá-lo. A atenuação da
+porta e das paredes metálicas de um freezer ou câmara fria \textbf{não
+foi medida}, e é o caso mais desfavorável do cenário de referência. É
+por causa dele que o produto não usa \SI{2,4}{\giga\hertz} entre os nós:
+os nós de borda falam LoRa com um nó central, que fica na tomada perto do
+roteador (Cap.~\ref{cap:arquitetura}), e só o nó central precisa
+alcançar a internet.
+
+A campanha de coleta deste ciclo (Seção~\ref{sec:campanha}) \textbf{não
+foi feita no cenário de referência}. O nó ficou em cima de uma
+escrivaninha, num cômodo com ar-condicionado da residência de um
+integrante (João Pedro Saleh), fora do fluxo de ar do aparelho, com o
+roteador no mesmo ambiente: o RSSI ficou entre \SI{-15}{} e
+\SI{-29}{dBm}, mais de \SI{55}{\deci\bel} acima da regra do \RNF{06}. O
+que muda em relação à farmácia: não há paredes nem a porta metálica do
+freezer no caminho do rádio, e o ambiente é um cômodo comum, cuja
+temperatura segue o ar-condicionado e o calor da tarde, e não uma sala
+com faixa controlada. A conectividade medida na campanha é, portanto, o
+melhor caso de rádio; e o fenômeno medido, o desligamento do
+ar-condicionado, é o análogo doméstico de uma falha de climatização.
+A farmácia ficou de fora porque o acesso às áreas monitoradas é
+restrito: testar lá exigiria sanitização do equipamento e permissão dos
+proprietários, que não havia como obter dentro do prazo do ciclo.
+
+\section{Escopo deste ciclo}
+
+\begin{orientacao}
+Duas listas curtas e honestas. A segunda é a que o docente lê com mais
+atenção: equipe que não sabe dizer o que \emph{não} vai fazer costuma
+não entregar nem o que disse que faria.
+\end{orientacao}
+
+\noindent\textbf{Está neste ciclo (\moduloDoCiclo):}
+\begin{itemize}
+  \item integração do nó da AP1 (ESP32~+~DHT22, filtragem e alarme local) a
+    uma infraestrutura de comunicação, com a tecnologia escolhida e
+    justificada na Seção~\ref{sec:tecnologia};
+  \item publicação de cada leitura em um \emph{broker} MQTT, segundo um
+    contrato de dados e de tópicos documentado
+    (Seções~\ref{sec:contrato-dados} e~\ref{sec:topicos});
+  \item registro persistente das leituras por um gravador, que forma o
+    conjunto de dados do projeto --- o registro que a AP1 adiou para
+    nascer já associado ao dado que trafega pela rede;
+  \item uma campanha de coleta com o nó operando sem ninguém olhando,
+    e a medição da qualidade do conjunto formado
+    (Seções~\ref{sec:campanha} a~\ref{sec:dataset});
+  \item a medição do custo real do rádio, que substitui a estimativa do
+    orçamento de energia da AP1 (Seção~\ref{sec:custo-radio});
+  \item a avaliação, em bancada, dos dois rádios do próprio ESP32 (ESP-NOW
+    e BLE) nas mesmas distâncias e obstáculos, como alternativa ao LoRa
+    enquanto o módulo comprado pela equipe não chegava; o resultado
+    sustenta a escolha da Seção~\ref{sec:tecnologia};
+\end{itemize}
+
+\noindent As pendências herdadas da AP1 --- correção da alteração de
+faixa (\RF{02}), redução da latência do alarme (\RNF{02}),
+\emph{timeout} na leitura do sensor e log formal do \CT{04} --- estavam
+previstas para este ciclo, mas \textbf{não foram tratadas}: o trabalho
+do Módulo~2 foi para a comunicação, num \emph{firmware} separado do da
+AP1, e elas continuam abertas (Cap.~\ref{cap:conclusao}).
+
+\noindent\textbf{Não está neste ciclo, e por quê:}
+\begin{itemize}
+  \item \textbf{Treinamento e embarque de um modelo} --- é o objeto do
+    Módulo~3; este ciclo entrega o conjunto de dados que o alimenta;
+  \item \textbf{Notificação remota (aplicativo, push, WhatsApp) e
+    acionamento automático de climatização} --- continuam na visão de
+    produto de longo prazo; com a rede, passam a ser tecnicamente
+    possíveis, mas não cabem no prazo deste ciclo;
+  \item \textbf{Integração do nó ao painel central web e relatórios em
+    PDF/Excel para auditoria} --- o servidor do produto (API em FastAPI,
+    banco PostgreSQL com registros imutáveis e painel web com um card por
+    sala) foi construído em paralelo pela equipe. A placa ainda não fala
+    com ele, porque o nó central não existe em hardware
+    (Cap.~\ref{cap:arquitetura}): neste ciclo, o dado da placa termina no
+    gravador (Seção~\ref{sec:caminho}), e as leituras da campanha foram
+    levadas ao servidor por uma ponte que faz o papel do nó central
+    (Seção~\ref{sec:ponte}, \CT{16}). Relatórios em PDF/Excel continuam
+    fora do ciclo;
+  \item \textbf{Rede com vários nós} --- a campanha usa
+    um nó (\texttt{eq01-no02}); a escala para um nó por sala, com enlace
+    LoRa até um nó central, depende do módulo LoRa e fica para a AP3 em
+    diante.
+\end{itemize}
+
+\section{Soluções existentes}
+
+\begin{orientacao}
+Duas ou três soluções que já resolvem algo parecido --- produtos
+comerciais, projetos abertos ou trabalhos publicados --- e, para cada
+uma, uma frase dizendo por que ela não serve ao contexto da
+Cap.~\ref{cap:problema}. Preço, dependência de infraestrutura que não
+existe no local e falta de acesso ao código são razões legítimas.
+\enquote{Não encontramos nada parecido} quase nunca é verdade e
+enfraquece o relatório. Cite pela norma: \citeonline{alfuqaha2015} é um
+ponto de partida razoável para o panorama de arquiteturas e protocolos.
+\end{orientacao}
+
+O mercado de registradores de temperatura para ambientes controlados é
+maduro, mas caro para o caso de uma farmácia de manipulação de pequeno
+porte (preços levantados pela equipe na AP1, em setembro de 2026). O Novus LogBox Wi-Fi, datalogger industrial com nuvem própria,
+custa cerca de R\$~3.266,00 por unidade; a sonda Wi-Fi Testo Saveris
+2-H1 custa por volta de R\$~3.608,00 avulsa; e a plataforma em nuvem
+SyOS, voltada à farmácia, exige contrato mínimo de R\$~18.000,00 (cinco
+sensores por 24 meses). O concorrente de preço mais próximo, o
+datalogger portátil Elitech RC-5+ (cerca de R\$~220,00), resolve o
+registro, mas é offline: a leitura só é conhecida quando alguém conecta
+o aparelho por USB, o que reproduz o mesmo atraso do processo manual
+que a equipe já observa na farmácia. Nenhuma das soluções pesquisadas
+--- incluindo a Sensorweb, que opera em comodato sem preço público ---
+aciona uma ação corretiva por conta própria: todas se limitam a
+monitorar e alertar. O TermoLOG, com um nó por sala de R\$~78,90 em
+ESP32 e DHT22 (R\$~105,20 com todo o protótipo, Tabela~\ref{tab:bom}),
+não compete em recursos de nuvem com essas
+soluções neste ciclo, mas parte de um custo por ponto de medição cerca
+de trinta vezes menor (cerca de vinte vezes, com o módulo LoRa do
+produto), o que muda o cálculo de viabilidade para
+farmácias de pequeno e médio porte.

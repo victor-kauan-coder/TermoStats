@@ -1,6 +1,6 @@
 # Testes de falha · 24/10/2026, 15:53 a 16:01
 
-Nó `eq01-no02` (ESP32 + DHT22, firmware em `wokwi/`), período de 5 s, broker público
+Nó `eq01-no02` (ESP32 + DHT22, firmware em `firmware/`), período de 5 s, broker público
 `broker.hivemq.com:8883`. Gravado com `gravador/gravador.py --host broker.hivemq.com --equipe eq01`.
 
 - `mensagens.csv`: CSV bruto do gravador

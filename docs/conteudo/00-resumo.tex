@@ -1,0 +1,84 @@
+% =====================================================================
+%  Resumo, abstract e palavras-chave
+%  Versão AP2: fechado em 24/10 com os números da campanha (branch lab3).
+% =====================================================================
+
+\begin{resumo}
+\begin{orientacao}
+Um parágrafo único, entre 150 e 250 palavras, sem citações, sem
+abreviaturas não explicadas e sem tópicos. A sequência que funciona é
+sempre a mesma: \textbf{contexto} (uma frase) $\rightarrow$
+\textbf{problema} (uma frase) $\rightarrow$ \textbf{o que a equipe
+construiu} (duas ou três frases, com os componentes principais)
+$\rightarrow$ \textbf{como foi verificado} (uma frase, com o número de
+casos de teste) $\rightarrow$ \textbf{o resultado, com número}
+(uma frase) $\rightarrow$ \textbf{o que fica para o próximo ciclo}
+(uma frase). Escreva este parágrafo \emph{por último}, quando o
+relatório já estiver pronto: resumo escrito antes do trabalho resume o
+plano, não o trabalho.
+\end{orientacao}
+
+Ambientes que dependem de faixas estreitas de temperatura e umidade,
+como salas de manipulação farmacêutica, ainda são monitorados
+manualmente, sem alarme automático de desvio. Este relatório documenta o
+segundo ciclo de projeto do \emph{TermoLOG}, um nó ESP32 com sensor
+DHT22 que filtra as leituras e aciona um alarme local quando elas saem da
+faixa configurada. Neste ciclo, um \emph{firmware} de comunicação passou
+a publicar cada leitura por WiFi e MQTT, com TLS, confirmação de
+entrega, testamento e sessão persistente, para um
+\emph{broker} de onde um gravador forma o conjunto de dados em arquivo.
+Com o rádio medido, publicar direto ao roteador reduz a autonomia
+calculada de 30 para 21 dias. A tecnologia do produto continua sendo o
+LoRa, como apontou a matriz de decisão: o módulo comprado pela equipe não
+chegou a tempo, e, dos dois rádios do ESP32 testados no lugar dele, o
+ESP-NOW foi bem até 8 m com uma parede, mas perdeu pacotes a partir de
+duas paredes e não foi testado através de um freezer. A verificação teve 17
+casos de teste, entre eles quedas provocadas do roteador, do nó, do
+gravador e do servidor, e uma campanha de 2,8 horas num cômodo com ar-condicionado,
+cujas leituras chegaram também ao servidor do produto, sem rejeição. O conjunto formado tem 1263 leituras, uma a cada
+5 segundos, com completude de 63,1\,\%: cerca de 96\,\% nos trechos
+estáveis e 40\,\% numa fase em que a conexão com o \emph{broker} caía
+em segundos, sem fila local para guardar as leituras. Dos 16
+requisitos, 5 foram atendidos, 8 em parte e 3 não. O próximo ciclo usa
+este conjunto para detectar falhas de climatização pela forma da curva, depois de
+acrescentar ao nó a fila local e o identificador de reinício.
+
+\textbf{Palavras-chave}: internet das coisas; ESP32; MQTT;
+monitoramento de temperatura e umidade; conjunto de dados.
+\end{resumo}
+
+\begin{resumo}[Abstract]
+\begin{otherlanguage*}{english}
+\begin{orientacao}
+Tradução fiel do resumo acima, não uma versão nova. Traduza depois de
+ter fechado o texto em português.
+\end{orientacao}
+
+Environments that depend on narrow temperature and humidity ranges,
+such as pharmaceutical compounding rooms, are still monitored by hand, with no
+automatic deviation alarm. This report documents the second design
+cycle of \emph{TermoLOG}, an ESP32 node with a DHT22 sensor that filters
+its readings and triggers a local alarm when they leave the configured
+range. In this cycle, a communication firmware began publishing every
+reading over WiFi and MQTT, with TLS, delivery acknowledgement, a last will and a persistent session, to a broker from
+which a recorder builds the dataset as a file. With the measured radio,
+publishing straight to the router cuts the computed battery life from
+30 to 21 days. The product technology remains LoRa, as the decision
+matrix indicated: the module the team bought did not arrive in time,
+and, of the two ESP32 radios tested in its place, ESP-NOW performed
+well up to 8 m through one wall but lost packets beyond two walls and
+was not tested through a freezer. Verification comprised
+17 test cases, including forced failures of the router, the node, the
+recorder and the server, and a 2.8-hour campaign in an air-conditioned room, whose
+readings also reached the product server with no rejections. The resulting dataset holds 1263 readings, one
+every 5 seconds, with 63.1\,\% completeness: about 96\,\% in the stable
+stretches and 40\,\% during a phase in which the broker connection
+dropped within seconds, with no local queue to hold the readings. Of
+the 16 requirements, 5 were met, 8 partially and 3 were not. The next
+cycle uses this dataset to detect cooling failures from the shape of the curve,
+after adding a local queue and a reboot identifier to the node.
+
+\textbf{Keywords}: internet of things; ESP32; MQTT; temperature and
+humidity monitoring; dataset.
+\end{otherlanguage*}
+\end{resumo}

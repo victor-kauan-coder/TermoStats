@@ -1,7 +1,7 @@
 # Campanha de coleta · 24/10/2026, 16:01 a 18:48
 
-Nó `eq01-no02`: ESP32 + DHT22 no GPIO15, publicando a cada 5 s com QoS 1 no broker
-público `broker.hivemq.com:8883` (TLS). Firmware em `wokwi/sketch/`, gravado com
+Nó `eq01-no02`: ESP32 + DHT22 no GPIO4, publicando a cada 5 s com QoS 1 no broker
+público `broker.hivemq.com:8883` (TLS). Firmware em `firmware/sketch/`, gravado com
 PlatformIO. Gravado por `gravador/gravador.py --host broker.hivemq.com --equipe eq01`,
 com sessão persistente.
 

@@ -1,0 +1,524 @@
+% =====================================================================
+%  Capítulo 7 — Verificação e testes
+% =====================================================================
+\chapter{Verificação e testes}
+\label{cap:testes}
+\rubricaRobustez
+
+\begin{orientacao}
+Um caso de teste por requisito, mais os testes de robustez que ninguém
+pediu e que separam um protótipo de uma demonstração. O procedimento
+precisa ser reproduzível por quem não montou o sistema. Registre o
+resultado \emph{obtido}, mesmo quando ele não é o esperado: teste que
+falhou e está documentado vale mais, nesta disciplina, do que teste que
+não foi feito. O plano completo, com os procedimentos passo a passo,
+vai no Apêndice~\ref{ap:testes}.
+\end{orientacao}
+
+\section{Casos de teste}
+
+{\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{longtable}{@{}L{1.3cm}L{1.5cm}L{4.4cm}L{3.4cm}L{2.4cm}@{}}
+\caption{Casos de teste e resultados}\label{tab:testes}\\
+\toprule
+\textbf{ID} & \textbf{Requi\-sito} & \textbf{O que se verifica} & \textbf{Resultado obtido} & \textbf{Veredito} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{@{}l}{\footnotesize\itshape Tabela~\ref{tab:testes} --- continuação}\\
+\toprule
+\textbf{ID} & \textbf{Requi\-sito} & \textbf{O que se verifica} & \textbf{Resultado obtido} & \textbf{Veredito} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{@{}r}{\footnotesize\itshape continua na próxima página}\\
+\endfoot
+\bottomrule
+\endlastfoot
+CT-01 & RF-01  & taxa de amostragem em 100 ciclos & 99 de 100 ciclos
+  registrados no log (ciclo 1 fora da captura), sequência 2--100 sem
+  lacunas, intervalo médio de \SI{9,7}{\second}/ciclo em modo acelerado
+  (sono configurado de \SI{1}{\second}), ou seja, $\approx$\SI{8,7}{\second}
+  de parte ativa; com o sono de \SI{600}{\second}, o ciclo estimado é de
+  $\approx$\SI{608,7}{\second} (+1,5\,\%, dentro dos $\pm$10\,\%); ver
+  Seção~\ref{sec:oquefalhou} & \aprovado{} (estimado) \\
+CT-02 & RF-02  & mudança de faixa/intervalo sem recompilar & comandos
+  \texttt{SET}/\texttt{SHOW}/\texttt{RESET} implementados, mas o ensaio
+  de bancada (10 mudanças de faixa em 10 tentativas) não passou nos
+  testes da equipe; não foi refeito na AP2 e continua aberto & \reprovado \\
+CT-03 & RF-03, RNF-02 & disparo do alarme fora da faixa & alarme dispara
+  corretamente fora da faixa; latência observada em
+  $\approx$\SI{5}{\second} no monitor serial, sem cronômetro externo,
+  acima da meta de \SI{2}{\second} da RNF-02 (ver Apêndice~\ref{ap:testes})
+  & RF-03: \parcial; RNF-02: \reprovado \\
+CT-04 & RF-04  & alarme cessa ao voltar à faixa & equipe constatou em
+  bancada que o alarme cessa corretamente ao retornar à faixa
+  configurada, mas não houve tempo hábil para gerar um novo registro de
+  log formal desse ensaio antes do prazo da AP1; resultado reportado de
+  forma informal; não foi documentado na AP2 e continua aberto & \parcial \\
+CT-05 & Robustez (a) & sensor desconectado em operação & nó entra em
+  laço de \emph{reboot} pelo \emph{watchdog}, sem registrar a falha & \reprovado \\
+CT-06 & Robustez (b) & queda/retorno de alimentação & reinicia, recupera
+  configuração da NVS e refaz a leitura & \aprovado \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Casos de teste da AP2 (requisitos novos e testes mínimos do módulo)}} \\
+\midrule
+CT-07 & RNF-01 & autonomia recalculada com o rádio medido; medição em
+  bateria real, se houver & ciclo de rádio de \SI{2,48}{\second} (pior
+  HTTP) a \SI{300}{\milli\ampere}: \SI{98,9}{\mAh}/dia e 21 dias (19 com
+  TLS) com WiFi direto; com LoRa até o nó central, 71,4 a
+  \SI{72,4}{\mAh}/dia e $\approx$29 dias (folha de dados); sem
+  bateria real & \parcial \\
+CT-08 & RF-05 & publicação no período e no contrato de dados &
+  \num{1263} mensagens no CSV da campanha; conectado, o intervalo entre
+  \texttt{ts} foi de \SI{5}{\second} em \num{1120} vezes e de 6 a
+  \SI{7}{\second} em 4 (atraso de leitura, abaixo do limite de lacuna);
+  as outras 138 diferenças são lacunas; 439
+  leituras seguidas no fim; 0 fora do contrato; 50 só com
+  \texttt{rssi\_dbm} & \aprovado \\
+CT-09 & RF-06 & queda do WiFi: roteador desligado por cerca de
+  \SI{2}{\minute} & reconectou sozinho; lacuna de \SI{101}{\second}
+  ($\approx$19 leituras perdidas), \texttt{seq} pulou só 1: sem fila
+  local; volta depois do roteador estimada em $\approx$\SI{8}{\second};
+  nas 553 quedas do \emph{broker} da campanha, \texttt{online} de novo
+  em \SI{3,5}{\second} na mediana e em até \SI{30}{\second} em 552 & \parcial \\
+CT-10 & RF-07 & o nó morre sem avisar: alimentação retirada &
+  \texttt{offline} do testamento \SI{46}{\second} depois da última
+  leitura no CSV; descontados o trânsito de $\approx$\SI{1}{\second}
+  até o gravador e os 0 a \SI{5}{\second} entre a última leitura e o
+  corte, o \emph{broker} publicou entre 40 e \SI{45}{\second} depois do
+  corte, como prevê o \emph{keepalive} & \aprovado \\
+CT-11 & RF-08 & o nó reinicia: botão EN & dois reinícios; \texttt{seq}
+  volta a 1, sem \texttt{boot}; 0 duplicatas e 0 perdas falsas no
+  \texttt{qualidade.py}, mas a chave (\texttt{id}, \texttt{seq})
+  descartaria 8 leituras válidas & \parcial \\
+CT-12 & RNF-08 & o gravador para, com sessão persistente & 6 leituras
+  depois de \SI{32}{\second} e 100 depois de \SI{8,7}{\minute}, entregues
+  na volta com o \texttt{ts} original; nenhum buraco no \texttt{seq};
+  os \SI{10}{\minute} da meta não foram ensaiados & \parcial \\
+CT-13 & RF-08 & antes do NTP: primeiras leituras após ligar o nó & 0
+  leituras com \texttt{ts} \texttt{null} em 3 reinícios; decisão:
+  manter e contar & \aprovado \\
+CT-14 & RNF-07, RNF-05, robustez (d) & longa duração: a própria campanha
+  (\SI{2,78}{\hour}) & completude de 63,1\,\% contra a meta de 95\,\%;
+  138 lacunas, 695 dos 764 \texttt{offline} entre 16:30 e 18:10
+  (Seção~\ref{sec:qualidade}); com o ar-condicionado ligado por
+  \SI{33}{\minute}, nenhum salto entre leituras consecutivas & RNF-07:
+  \reprovado; RNF-05: \parcial \\
+CT-15 & RNF-06 & alcance no ponto de instalação & em ambiente de teste:
+  sem perda até \SI{8}{\metre} com uma parede (RSSI p10 de
+  \SI{-86}{dBm}); limite a \SI{11}{\metre}; no ponto de instalação da
+  campanha, RSSI de \SI{-15}{} a \SI{-29}{dBm} (50 medidas) & \aprovado \\
+CT-16 & pergunta de projeto (servidor central) & leituras da campanha no
+  servidor do produto, em lotes, pela ponte & \num{1213} de \num{1213}
+  aceitas em 13 lotes; reenvio sem gravar nada de novo; com faixa na sala,
+  lote com 6 leituras com dois desvios derruba a API (HTTP 500) & \parcial \\
+CT-17 & Robustez (e) & o servidor falha: 404, 503 e corpo que ele não
+  entende (\emph{firmware} HTTP da branch \texttt{apendice\_b}) & 404:
+  uma tentativa, sem repetir; 503: três tentativas, com esperas de 1 e
+  \SI{2}{\second}, e desiste; JSON com uma vírgula a mais: HTTP 200, mas
+  o eco devolve \texttt{\textquotedbl json\textquotedbl:\,null}, e o nó e o gravador acusam o corpo
+  inválido & \aprovado \\
+\end{longtable}
+\vspace{-0.6\baselineskip}
+\fonte{Elaborada pela equipe; procedimentos completos no
+  Apêndice~\ref{ap:testes}.}
+}
+
+\section{Testes de robustez}
+
+\begin{orientacao}
+Quatro testes que valem a pena em qualquer projeto deste ciclo, e que
+quase nenhuma equipe faz por conta própria:
+
+\begin{enumerate}[label=\alph*)]
+  \item \textbf{Sensor desconectado com o sistema ligado.} O que o
+    \emph{firmware} lê, e o que ele faz com esse valor?
+  \item \textbf{Queda e retorno da alimentação durante um acionamento.}
+    O sistema volta em estado seguro?
+  \item \textbf{Entrada fora da faixa} (sensor saturado, iluminado
+    diretamente, aquecido com a mão). A decisão continua fazendo sentido?
+  \item \textbf{Operação contínua por algumas horas.} Há
+    \emph{overflow}, vazamento de memória ou deriva do relógio?
+\end{enumerate}
+\end{orientacao}
+
+A equipe executou os itens (a), (b) e (c) com o módulo DHT11 (o firmware de
+referência aceita DHT11 ou DHT22 por \emph{define}; o comportamento
+qualitativo dos três ensaios não depende de qual dos dois está no
+barramento --- apenas a precisão declarada nas mensagens de log muda). Os
+resultados, resumidos:
+
+\begin{itemize}
+  \item \textbf{(a) Sensor desconectado:} sem o sensor, a leitura trava
+    tempo suficiente para o \emph{watchdog} reiniciar a ESP32 antes que o
+    código alcance o ramo que registra \enquote{Falha de leitura do DHT11}
+    em \texttt{lerDHTFiltrado()}. O nó entra em um laço de reinicializações
+    em vez de operar em modo degradado com a falha visível no log. Este é
+    o achado mais importante do ciclo de testes (ver
+    Seção~\ref{sec:oquefalhou}).
+  \item \textbf{(b) Queda e retorno de alimentação:} a porta serial cai
+    junto com a alimentação; ao religar, a ESP32 reinicia, recupera a
+    configuração gravada na NVS (\texttt{Preferences}) e realiza uma nova
+    leitura antes de decidir se o alarme deve religar --- comportamento
+    esperado e aprovado.
+  \item \textbf{(c) Entrada fora da faixa:} o alarme soa e o monitor
+    serial registra que a medição está fora da faixa configurada; o
+    \emph{firmware} também troca para o intervalo de sono mais curto
+    (\enquote{intervalo de alarme}) enquanto a condição persistir. A
+    leitura continua sendo reportada normalmente na serial, com o alarme
+    ligado ou não, que é o comportamento esperado: o alarme sinaliza, mas
+    não altera o dado. Os valores lidos no momento do disparo não foram
+    registrados no log da AP1.
+  \item \textbf{(d) Operação contínua por algumas horas:} \textbf{não
+    executado} na AP1. Na AP2, este item é coberto pela própria campanha
+    de coleta (\CT{14}), com o \emph{firmware} de comunicação, e não com o
+    da AP1: em \SI{2,78}{\hour}, o nó não reiniciou sozinho nenhuma vez (o
+    único reinício foi o do início, provocado), o \texttt{seq} subiu sem
+    voltar de 1 a \num{1264}, e o intervalo entre leituras conectadas
+    ficou em \SI{5}{\second} até o fim, sem deriva. O que falhou foi a
+    conexão com o \emph{broker}, não o nó (Seção~\ref{sec:oquefalhou}).
+    Três horas não bastam para ver um vazamento lento de memória, e o
+    \emph{firmware} não registra a memória livre.
+  \item \textbf{(e) O servidor falha (AP2, \CT{17}):} na sessão de 23/10
+    da ferramenta da Aula~10 (branch \texttt{apendice\_b}, log
+    \texttt{2026-10-23\_172639.log}), o \emph{firmware} HTTP enviou
+    leituras a endereços que respondem com erro de propósito. A política
+    de \texttt{postComPolitica()} separa o erro do nó do erro do caminho:
+    um 404 é erro do nó, e repetir não adianta, então ele desiste na
+    primeira tentativa; um 503 é erro do caminho, e ele repete com espera
+    crescente (\SI{1}{\second}, depois \SI{2}{\second}) até o limite de
+    três tentativas, e então desiste. Um corpo com uma vírgula a mais
+    voltou com HTTP 200, mas o servidor de eco não o entendeu
+    (\texttt{\textquotedbl json\textquotedbl:\,null}): o nó imprimiu que o JSON devolvido não era
+    igual ao enviado, e o gravador contou um corpo inválido. É a lição do
+    ensaio: código de sucesso não valida o dado. A leitura de quem desiste
+    se perde, porque esse \emph{firmware} também não tem fila local.
+\end{itemize}
+
+\noindent\textbf{Testes automatizados.} Além dos ensaios na placa, as
+ferramentas que produziram os números deste capítulo e do
+Apêndice~\ref{ap:energia} têm testes automatizados, rodados de novo em
+25/10 com \texttt{python -m unittest}, todos aprovados:
+
+\begin{itemize}
+  \item gravador da ferramenta da Aula~10 (branch \texttt{apendice\_b},
+    \texttt{gravador/tests/}): \textbf{10 testes}, entre eles a leitura
+    das linhas \texttt{@} da serial, a série que ignora o ciclo sem
+    resposta 2xx, as leituras sem duplicata e com a lacuna apontada, e a
+    conta do orçamento com o exemplo de 09/09 e com os valores da AP1;
+  \item gravador das baterias de rádio (branch \texttt{teste-esp-now},
+    \texttt{gravador/test\_gravador.py}): \textbf{14 testes}, entre eles
+    a perda contada pelo \texttt{seq}, a duplicata que não conta como
+    recebida, o reinício do sensor que não vira perda, a latência pelo
+    RTT sem repetir \texttt{seq} e dois sensores gravados em separado.
+\end{itemize}
+
+\noindent A branch \texttt{apendice\_b} traz também 10 testes da
+lógica pura do \emph{firmware} (resumo das séries, carga do ciclo,
+classificação do status e retentativa, espera crescente, corpo
+\emph{chunked} e vírgula a mais), que rodam no PC com
+\texttt{pio test -e native}; eles não foram executados para este
+relatório. O \texttt{gravador.py} e o \texttt{qualidade.py} da
+campanha (branch \texttt{lab3}) não têm testes automatizados: a
+conferência deles foi a contagem independente sobre o CSV
+(Seção~\ref{sec:qualidade}).
+
+\begin{orientacao}
+A frase registrada para o item (c) --- \enquote{os valores continuam
+normais mesmo fora do intervalo} --- é ambígua: não fica claro se
+\enquote{os valores} são a leitura do sensor (que deveria mesmo continuar
+sendo reportada normalmente, alarme ligado ou não) ou o comportamento do
+alarme (que não deveria ser \enquote{normal} nesse estado). Vale reescrever
+essa frase no relatório final com o dado exato observado, por exemplo o
+valor de temperatura/umidade lido no momento do disparo e o novo intervalo
+de sono medido.
+\end{orientacao}
+
+\section{Testes mínimos da AP2}
+\label{sec:testes-ap2}
+
+\begin{orientacao}
+Os casos \CT{09} a \CT{14} são os testes mínimos pedidos nas instruções
+da AP2; todos já foram feitos no Lab~03 ou no checklist de prontidão, e
+aqui viram casos documentados, com procedimento, resultado obtido e
+evidência (o quadro completo de cada um vai no
+Apêndice~\ref{ap:testes}). O que cada um precisa mostrar: na queda do
+WiFi, o log da reconexão, o tempo até voltar e o que a fila segurou; no
+nó que morre sem avisar, o \texttt{offline} do testamento e quanto
+tempo ele levou; no reinício, o \texttt{boot} novo e nenhuma duplicata
+nem perda falsa; na parada do gravador, o \emph{backlog} entregue sem
+buraco no CSV; antes do NTP, quantas leituras saem com \texttt{ts}
+\texttt{null} e o que se fez com elas; na longa duração, completude,
+lacunas e o que as explicou.
+\end{orientacao}
+
+Os testes \CT{09} a \CT{13} foram feitos em sequência, das 15:53 às
+16:01 de 24/10, com o nó \texttt{eq01-no02} publicando a cada
+\SI{5}{\second} e o gravador ligado, logo antes da campanha. A evidência
+de cada um é o CSV do gravador
+(\texttt{dados/testes\_falha\_24-10-26/mensagens.csv}, branch
+\texttt{lab3}) e a saída do \texttt{qualidade.py} sobre ele
+(Listagem~\ref{lst:qualidade-testes}). Os horários das ações foram
+\textbf{reconstruídos a partir do CSV}, pela sequência de
+\texttt{status} e de \texttt{seq}, e não de anotações feitas na hora;
+a incerteza de cada um é de um período (\SI{5}{\second}).
+
+\textbf{Queda do WiFi (\CT{09}).} De 15:59:06 a 16:00:47 o gravador não
+recebeu nada: \SI{101}{\second}, cerca de 19 leituras. O nó voltou
+sozinho (\texttt{online} às 16:00:46) e retomou a publicação, mas o
+\texttt{seq} pulou só 1 (o 25, uma publicação tentada quando a rede
+caiu): as outras 18 leituras nunca foram feitas, porque o nó não tem
+fila e não mede desconectado. A hora em que o roteador voltou não foi
+anotada; pelos tempos medidos na bancada (associação e DHCP de
+\SI{1,74}{\second}, TLS de $\approx$\SI{1}{\second}) e pela tentativa do
+\emph{broker} a cada \SI{5}{\second}, a reconexão leva até
+$\approx$\SI{8}{\second} depois da volta do roteador, dentro dos
+\SI{30}{\second} do \RF{06}.
+
+\textbf{Tempo de reconexão, medido na campanha.} A parte do \RF{06} que
+o \CT{09} não cronometrou, o nó voltar sozinho ao \emph{broker}, foi
+medida sem querer na campanha, que teve centenas de quedas. Para cada
+\texttt{offline} publicado pelo \emph{broker} no tópico \texttt{status},
+contou-se o tempo até o \texttt{online} seguinte do nó
+(\texttt{integracao/conta\_reconexoes.py}, sobre o CSV da campanha). As
+duas horas são de chegada ao gravador, então o trânsito até ele se
+cancela; ficaram de fora as mensagens que chegaram no lote das 16:10,
+cuja hora de chegada não é a do evento. Nas \textbf{553 quedas}, o nó
+voltou em \SI{3,5}{\second} na mediana, \SI{8,6}{\second} no p90 e
+\SI{16,9}{\second} no p99; 410 voltas (74\,\%) levaram até
+\SI{5}{\second}, 526 (95\,\%) até \SI{10}{\second}, e
+\textbf{552 de 553 ficaram dentro dos \SI{30}{\second}} do \RF{06}. A
+exceção levou \SI{48,5}{\second}, a partir do \texttt{offline} das
+18:05:26, no pior trecho da fase degradada. A ressalva é que essas são
+quedas da conexão com o \emph{broker}, com o WiFi associado; depois de
+uma queda do roteador, a volta soma ainda a reassociação e o DHCP
+(\SI{1,74}{\second} medidos na bancada), e para esse caso vale a
+estimativa de $\approx$\SI{8}{\second} acima. O \RF{06} continua
+parcial pela outra metade: sem fila local, as leituras do período não
+são guardadas.
+
+\textbf{O nó morre sem avisar (\CT{10}).} A última leitura chegou às
+15:55:05; o \texttt{offline} do testamento, às 15:55:51,
+\SI{46}{\second} depois. O corte aconteceu entre 0 e \SI{5}{\second}
+depois dessa leitura, então o atraso a partir do corte ficou entre 41 e
+\SI{46}{\second}, o que se espera de um \emph{keepalive} de
+\SI{30}{\second} ($1{,}5 \times 30 = \SI{45}{\second}$, contados da
+última mensagem do nó).
+
+\textbf{O nó reinicia (\CT{11}).} Dois reinícios, às 15:56:11 e perto de
+15:56:47. Nos dois, o \texttt{seq} voltou a 1, e o \texttt{qualidade.py}
+separou o arquivo em três trechos: 2 reinícios, 0 repetidas e 0 faltas
+atribuídas a eles. O critério do \RF{08}, porém, pede o \texttt{boot}
+novo, que o contrato da campanha não tem. Sem ele, quem deduplicar pela
+chave (\texttt{id}, \texttt{seq}) descarta como repetidas 8 leituras
+válidas destes testes, as que repetem um \texttt{seq} de antes do
+reinício. O \texttt{qualidade.py} só
+acertou porque a primeira leitura de cada reinício chegou.
+
+\textbf{O gravador para (\CT{12}).} Com o gravador parado de cerca de
+15:57:46 a 15:58:18, as leituras de \texttt{seq} 9 a 14 chegaram juntas
+às 15:58:18, com os \texttt{ts} originais, e nenhum \texttt{seq} ficou
+faltando. A campanha repetiu o teste sem querer, e por mais tempo: o
+gravador foi ligado \SI{8,7}{\minute} depois do reinício do nó, e as 100
+leituras desse intervalo chegaram em \SI{3}{\second}, o que explica o
+atraso máximo de \SI{523}{\second} da Tabela~\ref{tab:qualidade}. A meta
+de \SI{10}{\minute} do \RNF{08} não foi ensaiada.
+
+\textbf{Antes do NTP (\CT{13}).} Nos dois reinícios dos testes e no da
+campanha, a primeira leitura já saiu com \texttt{ts} válido: 0 leituras
+nulas. O NTP acerta antes da primeira publicação porque ela só sai
+depois de associar ao WiFi e de conectar ao \emph{broker} por TLS. Se
+uma leitura nula aparecer, ela é mantida e contada.
+
+\textbf{Longa duração (\CT{14}).} A campanha (Seção~\ref{sec:campanha}):
+completude de 63,1\,\%, contra a meta de 95\,\% do \RNF{07}, com duas
+fases estáveis em torno de 96\,\% e uma degradada, de 40\,\%. As
+lacunas são explicadas pelo tópico \texttt{status}, e a causa da fase
+degradada é uma hipótese ainda não confirmada (Seção~\ref{sec:qualidade}).
+
+\begin{lstlisting}[style=terminal,
+  caption={Saída do \texttt{qualidade.py} sobre o CSV dos testes de falha (só a linha de \texttt{status} foi quebrada)},
+  label={lst:qualidade-testes}]
+$ python gravador/qualidade.py dados/testes_falha_24-10-26/mensagens.csv
+
+=== eq01-no02
+  leituras recebidas  53   (seq 51 a 32)
+  faltam (seq pulou)  1
+  repetidas           0
+  reinicios do no     2   (o seq voltou a 1)
+  atraso chegada-ts   mediana 1 s · maximo 28 s
+  esperadas           90   (15:54:00 a 16:01:27, 7.5 min / 5 s)
+  completude          58.9%   (53 unicas de 90)
+  lacunas             5   (somam 212 s)
+    15:59:06 a 16:00:47     101 s   ~19 leituras
+    15:55:05 a 15:56:11      66 s   ~12 leituras
+    15:56:46 a 15:57:07      21 s   ~3 leituras
+    16:01:02 a 16:01:17      15 s   ~2 leituras
+    15:57:12 a 15:57:21       9 s   ~1 leituras
+  status              online 15:53:58  >  offline 15:55:51  >  online 15:56:11  >
+                      offline 15:56:13  >  online 15:56:16  >  offline 15:56:59  >
+                      online 15:57:06  >  offline 15:57:13  >  online 15:57:15  >
+                      offline 15:57:16  >  online 15:57:20  >  offline 15:59:51  >
+                      online 16:00:46  >  offline 16:01:07  >  online 16:01:08  >
+                      offline 16:01:12  >  online 16:01:16
+\end{lstlisting}
+
+\noindent A linha de \texttt{status} foi quebrada em várias para caber
+na página; o resto está como o \emph{script} imprimiu. O \enquote{seq 51
+a 32} da primeira linha não é erro: o \emph{script} mostra o
+\texttt{seq} da primeira e da última leitura do arquivo, e, depois dos
+dois reinícios, o \texttt{seq} recomeçou em 1 e terminou em 32, abaixo
+do 51 em que o arquivo começou. A completude de
+58,9\,\% é a de oito minutos de falhas provocadas de propósito, e não
+entra na conta do \RNF{07}. Logo depois de cada reinício, o
+\texttt{status} alternou \texttt{online} e \texttt{offline} em poucos
+segundos; uma explicação compatível é o \emph{broker} publicar o
+testamento da sessão antiga quando a nova conexão assume o mesmo
+\emph{client ID}.
+
+\textbf{Integração com o servidor do produto (\CT{16}).} A ponte da
+Seção~\ref{sec:ponte} enviou o CSV da campanha a uma instância local e
+isolada do servidor do produto (FastAPI e PostgreSQL, subida pelo
+\texttt{docker-compose.yml} do produto, com banco vazio), com um nó
+central, duas salas e dois sensores cadastrados pela própria API. Numa
+sala sem faixa, as \num{1213} leituras com grandeza entraram em 13 lotes,
+todos com HTTP 201, nenhuma rejeitada, em \SI{0,3}{\second}. O reenvio
+dos mesmos 13 lotes devolveu as mesmas respostas e não gravou nada: o
+total do sensor continuou em \num{1213}. A consulta
+\texttt{GET /sensores/\{id\}/leituras} devolveu a série com o mesmo início
+(16:01:32), fim (18:48:26) e faixa (24,0 a \SI{30,7}{\celsius}) do
+conjunto de dados, e o painel passou a mostrar o nó central como
+\texttt{online}. Numa sala com a faixa da sala de manipulação, porém, o
+primeiro lote voltou com HTTP 500. O ensaio mínimo isolou a condição:
+lotes com 1 a 3 leituras fora da faixa em temperatura \emph{e} umidade
+passam, e um lote com 6 delas falha, com o PostgreSQL recusando o
+\texttt{INSERT} do alerta (\enquote{no unique or exclusion constraint
+matching the ON CONFLICT specification}). É um defeito do servidor, e não
+da ponte: o lote é recusado inteiro, e o nó central teria de reenviá-lo
+para sempre. A evidência e a correção sugerida estão em
+\texttt{integracao/resultado\_25-10-26.md}.
+
+\section{O que falhou}
+\label{sec:oquefalhou}
+
+\begin{orientacao}
+Seja específico. \enquote{Tivemos problemas com o sensor} não é
+informação; \enquote{o DS18B20 retornava \SI{85}{\celsius} sempre que a
+leitura era feita antes dos \SI{750}{\milli\second} de conversão, o que
+descobrimos no CT-03} é. Esta seção é lida com atenção e costuma render
+pontos, não perdê-los.
+\end{orientacao}
+
+Na AP1, três problemas concretos surgiram na preparação deste capítulo:
+
+\begin{enumerate}
+  \item \textbf{Log do CT-01 recapturado.} A primeira captura de
+    \texttt{teste\_100\_ciclos.log} havia chegado corrompida (1{,}69\,MB,
+    bytes nulos); refeita a captura, o arquivo ficou legível e permitiu
+    verificar a sequência de ciclos e estimar a parte ativa de cada um
+    ($\approx$\SI{8,7}{\second}); o intervalo de \SI{10}{\minute} do RF-01
+    sai por estimativa, somando essa parte ao sono de \SI{600}{\second}. Dos 100 ciclos do modo
+    \texttt{TESTE\_100\_CICLOS}, 99 aparecem completos no log (o ciclo~1
+    ficou fora da janela de captura, iniciada já no \emph{boot} do
+    despertar~\#2); a sequência de \emph{wake-ups} vai de \#2 a \#100 sem
+    lacunas. O intervalo entre despertares ficou em
+    \SI{9,7}{\second}/ciclo em média (do primeiro ao último registro,
+    \SI{961}{\second}\,/\,99 ciclos), acima do \SI{1}{\second} de sono
+    configurado --- diferença esperada, pois o tempo ativo (leitura das 5
+    amostras, cálculo da mediana/EMA e impressão do log) também conta no
+    ciclo. As leituras de temperatura (mediana) variaram entre
+    \SI{36,0}{\celsius} e \SI{36,8}{\celsius} e as de umidade entre
+    \SI{20}{\percent} e \SI{34}{\percent}RH, faixa estreita e coerente com
+    um sensor mantido em bancada durante todo o ensaio. Em todos os
+    registros \texttt{Tensao da bateria: 0.00 V}, confirmando que o
+    divisor resistivo de VBAT --- opcional --- não estava montado neste
+    ensaio (não é uma falha).
+  \item \textbf{Tratamento de falha do sensor não é alcançado quando o
+    sensor está fisicamente ausente.} O código já prevê o caso de leitura
+    inválida (menos da maioria das \texttt{N\_AMOSTRAS} amostras válidas
+    $\Rightarrow$ \texttt{lerDHTFiltrado()} retorna \texttt{false} e o
+    \emph{firmware} incrementa \texttt{falhasConsecutivas} e imprime um
+    diagnóstico), mas o ensaio de robustez (a) mostrou que, com o sensor
+    desconectado, o \emph{watchdog} reinicia a placa antes que esse ramo
+    seja alcançado. Ou seja, o tratamento de falha existe no código mas
+    não é exercitado no cenário mais comum de falha de campo (fio solto ou
+    sensor com defeito). Fica como item de correção para a AP2: adicionar
+    um tempo limite (\emph{timeout}) explícito em torno da chamada ao
+    \emph{driver} do DHT, menor que o tempo do \emph{watchdog}, para que o
+    ramo de \enquote{falha de leitura} seja realmente alcançável.
+  \item \textbf{Log formal do CT-04 não gerado a tempo.} A cessação do
+    alarme ao retorno à faixa configurada (RF-04) foi observada e
+    confirmada pela equipe em bancada, mas o registro de log dedicado a
+    esse ensaio não pôde ser recapturado antes do prazo desta AP1. O
+    resultado consta no Capítulo~\ref{cap:testes} como constatação
+    informal (\CT{04}, veredito parcial); a captura do log fica como
+    pendência imediata para a AP2.
+\end{enumerate}
+
+\noindent\textbf{Na AP2.} Três falhas apareceram nas medições de rádio,
+e duas delas eram do instrumento, não do rádio:
+
+\begin{enumerate}
+  \item \textbf{O gravador da bateria de ESP-NOW acusou perdas que não
+    existiram.} O resumo gerado na hora apontou 86\,\% de perda a
+    \SI{3}{\metre}, 55\,\% a \SI{5}{\metre} e 51\,\% a \SI{8}{\metre},
+    embora em todos esses testes tivessem chegado cerca de 600 pacotes em
+    \SI{60}{\second}, a taxa cheia. Eram dois defeitos da serial entre o
+    \emph{gateway} e o notebook: uma linha velha que ficou no
+    \emph{buffer} entre um teste e outro (\texttt{seq} 4344 seguido de
+    5083, o que inflou as leituras esperadas em 739) e um byte perdido
+    que transformou o \texttt{seq} 4165 em 465, tomado como reinício do
+    sensor. O próprio protocolo permitiu provar que os pacotes chegaram:
+    cada pacote traz o último \texttt{seq} confirmado (\texttt{seq\_rtt})
+    e o contador de falhas de envio do sensor, que ficou parado. Os
+    números foram refeitos a partir dos dados brutos (\texttt{analise.py}),
+    e o gravador foi corrigido antes da bateria de BLE: leitura contínua
+    da serial numa \emph{thread}, com a hora de chegada de cada linha;
+    \emph{checksum} no fim de cada linha; e perda contada pelo contador
+    de recebidos do \emph{gateway}, e não pelas linhas. Na bateria de
+    BLE, nenhuma linha foi rejeitada. A lição vale para a campanha: um
+    número de perda só é confiável quando há um segundo caminho
+    independente para conferi-lo.
+  \item \textbf{A queda de conexão do BLE aconteceu fora da janela de
+    teste.} A conexão caiu enquanto o notebook era levado de \SI{11}{\metre}
+    para \SI{18}{\metre}, e o gravador, que descarta o que chega fora da
+    janela de \SI{60}{\second} (a proteção do item anterior), descartou
+    também o aviso de desconexão. Os testes de 13 e \SI{18}{\metre}
+    ficaram com o arquivo vazio, sem registro do motivo. O resultado
+    (nenhum enlace) está certo, mas a correção prevista é o
+    \emph{gateway} imprimir o estado da conexão a cada segundo.
+  \item \textbf{O rádio WiFi esgotou o tempo de conexão em 2 de 26
+    ciclos HTTP} (23/10). Num nó
+    sem fila local, cada um desses ciclos seria uma leitura perdida.
+\end{enumerate}
+
+\noindent\textbf{Na campanha.} Duas falhas, ambas do \emph{firmware} de
+comunicação:
+
+\begin{enumerate}
+  \setcounter{enumi}{3}
+  \item \textbf{Por 1\,h\,40\,min, o nó conectou e caiu em ciclo.} Entre
+    16:30 e 18:10, o \emph{broker} publicou 695 testamentos, a mediana
+    das conexões durou \SI{3}{\second}, e só 40\,\% das leituras
+    chegaram; no pior trecho, de 17:46 a 18:10, foram 13 leituras em
+    \SI{24}{\minute}. O sinal de rádio estava forte (RSSI de
+    \SI{-15}{} a \SI{-29}{dBm}). A hipótese é o \emph{timeout} de
+    \SI{1}{\second} da biblioteca MQTT, que derruba a conexão quando o
+    PUBACK ou o CONNACK demora (Seção~\ref{sec:qualidade}). Ela não foi
+    confirmada: a equipe não mediu a latência até o \emph{broker}
+    durante a campanha, e o teste com \texttt{mqtt.setTimeout(5000)}
+    ficou para depois, para não mudar o \emph{firmware} no meio da
+    entrega.
+  \item \textbf{4,0\,\% das leituras do DHT22 falharam}, 50 de
+    \num{1263}, espalhadas pela campanha (4,7\,\% com o ar-condicionado
+    ligado e 3,6\,\% depois). Sem a mediana de 5 amostras da AP1, cada
+    falha vira uma leitura sem temperatura. O \emph{firmware} publicou o
+    \texttt{rssi\_dbm} no lugar, e o \texttt{seq} não perdeu a conta.
+\end{enumerate}
+
+\noindent As pendências da AP1 acima (\emph{timeout} do DHT contra o
+\emph{watchdog} e log formal do \CT{04}), assim como o \CT{01} em
+velocidade real e a correção do \CT{02}, \textbf{continuam abertas}:
+nenhuma foi tratada neste ciclo, porque o trabalho do Módulo~2 foi para o
+\emph{firmware} de comunicação, separado do da AP1.

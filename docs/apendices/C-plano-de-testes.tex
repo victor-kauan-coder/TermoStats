@@ -1,0 +1,532 @@
+% =====================================================================
+%  Apêndice C — Plano de testes
+% =====================================================================
+\chapter{Plano de testes}
+\label{ap:testes}
+
+\begin{orientacao}
+Um quadro por caso de teste. O procedimento precisa ser executável por
+alguém que não montou o sistema: se um passo diz \enquote{configurar o
+sensor}, ele não é um passo. Copie o quadro abaixo quantas vezes forem
+necessárias.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{CT-01 --- taxa de amostragem}
+\label{tab:ct01}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{01} \\
+\midrule
+\textbf{Objetivo} & Verificar que o intervalo entre amostras consecutivas
+  fica dentro de $\pm$ 10\,\% do valor especificado. \\
+\textbf{Material} & Protótipo montado, cabo USB, monitor serial a
+  \SI{115200}{\baud}. \\
+\textbf{Procedimento} &
+  1. Gravar o \emph{firmware} da AP1 (\texttt{esp32\_dht22.ino}, branch
+     \texttt{victor\#sensores}, Seção~\ref{sec:repositorio}).\newline
+  2. Abrir o monitor serial e registrar \SI{100}{} linhas em arquivo.\newline
+  3. Calcular a diferença entre carimbos de tempo consecutivos.\newline
+  4. Comparar média e desvio com o valor especificado. \\
+\textbf{Resultado esperado} & Média dentro de $\pm$ 10\,\%; nenhuma
+  amostra com atraso superior ao dobro do período. \\
+\textbf{Resultado obtido} & Ensaio executado com \texttt{TESTE\_100\_CICLOS=1}
+  (sono reduzido a \SI{1}{\second} por ciclo, mediana de 5 amostras
+  mantida). A primeira captura do log chegou corrompida e foi refeita; o
+  arquivo recapturado ficou legível e mostra 99 dos 100 despertares com
+  leitura completa (ciclo~1 fora da janela de captura), em sequência
+  contínua de \#2 a \#100, sem nenhum travamento ou \emph{reboot}
+  inesperado. O intervalo médio entre despertares consecutivos foi de
+  \SI{9,7}{\second} (\SI{961}{\second} entre o primeiro e o último
+  registro, divididos por 99 ciclos) --- acima do \SI{1}{\second} de sono
+  configurado, pois o tempo ativo de leitura das 5 amostras, cálculo da
+  mediana/EMA e impressão no serial também entra no ciclo. O tempo ativo
+  não foi cronometrado à parte: os $\approx$\SI{8,7}{\second} saem da
+  diferença entre o ciclo médio (\SI{9,7}{\second}) e o sono configurado
+  (\SI{1}{\second}), supondo que o sono dure o que o \emph{firmware}
+  programa. Temperatura (mediana) entre
+  \SI{36,0}{\celsius} e \SI{36,8}{\celsius}, umidade entre
+  \SI{20}{\percent} e \SI{34}{\percent}RH --- variação estreita, coerente
+  com o sensor parado em bancada durante o ensaio; tensão de bateria
+  \SI{0.00}{\volt} em 100\,\% dos registros (divisor de VBAT não montado
+  neste ensaio, comportamento esperado). \\
+\textbf{Veredito} & \aprovado{} (estimado: a parte ativa de $\approx$\SI{8,7}{\second} deduzida deste ensaio, somada ao sono de \SI{600}{\second} que o \emph{firmware} programa por inteiro, dá $\approx$\SI{608,7}{\second} por ciclo, +1,5\,\%, dentro dos $\pm$10\,\%) \\
+\textbf{Evidência} & \texttt{teste\_100\_ciclos.log} (recapturado, legível).
+  O veredito é \emph{estimado}, e não medido: o ensaio comprova
+  estabilidade em 100 ciclos acelerados e a integridade dos dados
+  registrados, mas não cronometra o sono separado do tempo ativo. A
+  confirmação direta do intervalo de \SI{10}{\minute} do RF-01 depende de
+  um ensaio em velocidade real (sem \texttt{TESTE\_100\_CICLOS}) ou de
+  um \emph{log} com marcação separada de sono e processamento, que
+  continua pendente (Seção~\ref{sec:oquefalhou}). \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-02 --- alteração da faixa de referência sem recompilar}
+\label{tab:ct02}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{02} \\
+\textbf{Objetivo} & Verificar que os limiares de temperatura e umidade, e o
+  intervalo entre leituras, podem ser alterados em tempo de execução, sem
+  novo \emph{upload} de \emph{firmware}. \\
+\textbf{Material} & Protótipo montado, monitor serial a \SI{115200}{\baud}. \\
+\textbf{Procedimento} &
+  1. Reiniciar o nó e, na janela de \SI{4}{\second} de configuração, enviar
+     \texttt{SHOW} para registrar os valores de fábrica.\newline
+  2. Enviar \texttt{SET TEMP\_MIN=<valor>}, \texttt{SET TEMP\_MAX=<valor>},
+     \texttt{SET UMID\_MIN=<valor>} e \texttt{SET UMID\_MAX=<valor>} com
+     valores diferentes dos padrões.\newline
+  3. Enviar \texttt{SHOW} novamente e conferir se os valores mudaram.\newline
+  4. Repetir o ciclo (reiniciar sem enviar \texttt{RESET}) e confirmar que a
+     configuração sobrevive ao reinício (gravação na NVS). \\
+\textbf{Resultado esperado} & 10 mudanças de faixa em 10 tentativas,
+  confirmadas por \texttt{SHOW} antes e depois de um reinício. \\
+\textbf{Resultado obtido} & O \emph{firmware} implementa os comandos
+  \texttt{SET}/\texttt{SHOW}/\texttt{RESET} via \texttt{Preferences}, mas o
+  ensaio de bancada (10 mudanças de faixa em 10 tentativas) não foi
+  concluído com sucesso nos testes da equipe. O ensaio não foi refeito
+  na AP2, e o requisito continua aberto. \\
+\textbf{Veredito} & \reprovado \\
+\textbf{Evidência} & Nenhuma captura arquivada. O ensaio falhou na AP1 e não foi refeito na AP2, porque o trabalho do Módulo~2 foi para o \emph{firmware} de comunicação (Seção~\ref{sec:oquefalhou}); continua aberto. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-03 --- acionamento do alarme fora da faixa}
+\label{tab:ct03}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{03}, \RNF{02} \\
+\textbf{Objetivo} & Verificar que o buzzer e o LED de alarme acionam quando
+  a leitura sai da faixa configurada, e medir a latência entre a leitura e o
+  acionamento. \\
+\textbf{Material} & Protótipo montado, fonte de calor/umidade para forçar
+  leitura fora da faixa (ex.\ hálito ou mão próxima ao sensor), cronômetro
+  ou timestamp do monitor serial. \\
+\textbf{Procedimento} &
+  1. Configurar uma faixa estreita (ex.\ \texttt{SET TEMP\_MAX=25}).\newline
+  2. Aquecer o sensor até ultrapassar o limite.\newline
+  3. Cronometrar o intervalo entre a impressão da leitura e o acionamento do
+     buzzer/LED no monitor serial. \\
+\textbf{Resultado esperado} & Alarme aciona em até \SI{2}{\second}
+  (\RNF{02}) após a leitura fora da faixa; mensagem \texttt{ALARME:} impressa
+  no monitor serial. \\
+\textbf{Resultado obtido} & Confirmado no ensaio de robustez (c): ``o
+  sistema apita o alarme e indica no monitor serial que a medição está fora
+  do esperado, alterando o intervalo de leitura'' --- ou seja, o
+  \emph{firmware} troca para o intervalo de alarme
+  (\texttt{PADRAO\_INTERVALO\_ALARME\_S}, 1 min) enquanto a condição
+  persiste. O acionamento em si é síncrono (dentro de \texttt{avaliarAlarme()},
+  bloqueante por \SI{3}{\second} --- ver Cap.~4). A latência entre a
+  leitura e o acionamento foi \textbf{observada} no monitor serial em
+  cerca de \SI{5}{\second}, e é esse o número usado no \RNF{02}; ela
+  \textbf{não foi cronometrada} por um observador externo. O registro do
+  ensaio fala também em um repique a cada \SI{5}{\second}, o que não bate
+  com o \emph{firmware} descrito no Cap.~4 (pulso de \SI{3}{\second} a cada
+  \SI{60}{\second} de intervalo de alarme); o ensaio foi feito com o
+  DHT11 e sem log arquivado, e a diferença não pôde ser esclarecida. Por
+  isso o número do \RNF{02} é uma observação, e o ensaio precisa ser
+  refeito com cronômetro e com o \emph{firmware} do Cap.~4. \\
+\textbf{Veredito} & \RF{03}: \parcial; \RNF{02}: \reprovado{} (observado $\approx$\SI{5}{\second} contra \SI{2}{\second}) \\
+\textbf{Evidência} & \texttt{robustez.md}, item (c); recomenda-se repetir o
+  ensaio com cronômetro externo para fechar o número de \RNF{02}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-04 --- cessação do alarme ao retornar à faixa}
+\label{tab:ct04}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{04} \\
+\textbf{Objetivo} & Verificar que o alarme cessa quando a leitura retorna à
+  faixa configurada. \\
+\textbf{Material} & Mesmo do CT-03. \\
+\textbf{Procedimento} &
+  1. Repetir o CT-03 até o alarme disparar.\newline
+  2. Afastar a fonte de calor/umidade e deixar a leitura voltar à faixa.\newline
+  3. Confirmar que o buzzer e o LED desligam no ciclo seguinte. \\
+\textbf{Resultado esperado} & Alarme cessa em até 1 ciclo de leitura (o
+  intervalo de alarme, 1 min por padrão) após o retorno à faixa. \\
+\textbf{Resultado obtido} & A equipe executou o procedimento em bancada e
+  constatou que o buzzer/LED cessam corretamente ao retornar à faixa
+  configurada, conforme a lógica de \texttt{avaliarAlarme()}; não houve
+  tempo hábil para recapturar um log de monitor serial dedicado a este
+  ensaio antes do prazo da AP1, de modo que o resultado é reportado de
+  forma informal (sem evidência anexada). \\
+\textbf{Veredito} & \parcial \\
+\textbf{Evidência} & Nenhum log arquivado: a constatação foi informal, e o ensaio não foi refeito na AP2 (Seção~\ref{sec:oquefalhou}); continua aberto. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-05 --- sensor desconectado com o sistema ligado}
+\label{tab:ct05}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & Robustez (Cap.~\ref{cap:testes}, item a) \\
+\textbf{Objetivo} & Verificar o comportamento do \emph{firmware} quando o
+  DHT11/DHT22 é desconectado com o sistema em operação. \\
+\textbf{Material} & Protótipo montado, monitor serial. \\
+\textbf{Procedimento} &
+  1. Com o sistema ligado e lendo normalmente, desconectar o fio de dado
+     do sensor.\newline
+  2. Observar o monitor serial pelos próximos ciclos. \\
+\textbf{Resultado esperado} & O \emph{firmware} detecta \texttt{NaN} nas
+  leituras, conta como falha consecutiva e imprime a mensagem de
+  \enquote{Falha de leitura} definida em \texttt{lerDHTFiltrado()}. \\
+\textbf{Resultado obtido} & \textbf{Reprovado.} Sem o sensor, a leitura
+  trava tempo suficiente para o \emph{watchdog} reiniciar a ESP32 antes de
+  chegar ao trecho que registra a falha; o nó entra em um ciclo de
+  reinicializações e nunca imprime \enquote{Falha de leitura do DHT11}. Isso
+  indica que \texttt{dht.readTemperature()/readHumidity()} pode bloquear
+  além do tempo do \emph{watchdog} quando não há resposta do sensor no
+  barramento (Aula 06) --- o tratamento de \texttt{NaN} em
+  \texttt{lerDHTFiltrado()} nunca é alcançado nesse cenário. \\
+\textbf{Veredito} & \reprovado \\
+\textbf{Evidência} & \texttt{robustez.md}, item (a). \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-06 --- queda e retorno da alimentação}
+\label{tab:ct06}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & Robustez (Cap.~\ref{cap:testes}, item b);
+  \RF{02} (persistência de configuração) \\
+\textbf{Objetivo} & Verificar que o sistema volta a um estado seguro após
+  perder e recuperar a alimentação durante um acionamento. \\
+\textbf{Material} & Protótipo montado, fonte USB removível, monitor serial. \\
+\textbf{Procedimento} &
+  1. Forçar o alarme (como no CT-03).\newline
+  2. Desconectar a alimentação durante o acionamento.\newline
+  3. Reconectar e observar o monitor serial. \\
+\textbf{Resultado esperado} & O nó reinicia, recupera a configuração salva
+  na NVS e refaz a leitura antes de decidir se o alarme deve religar. \\
+\textbf{Resultado obtido} & \textbf{Aprovado.} A porta serial é
+  desconectada durante a queda; ao religar, a ESP32 reinicia, recupera a
+  configuração da NVS e realiza uma nova leitura, reavaliando o alarme
+  conforme o valor atual do sensor --- sem reter o estado de alarme
+  anterior (esperado, já que nada em RAM comum sobrevive a um \emph{power
+  cycle}; só a memória RTC sobrevive ao \emph{deep sleep}, não a uma queda de
+  alimentação). \\
+\textbf{Veredito} & \aprovado \\
+\textbf{Evidência} & \texttt{robustez.md}, item (b). \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+% ---------------------------------------------------------------------
+%  Casos de teste da AP2. Procedimentos dos testes mínimos (CT-09 a
+%  CT-14) conforme as instruções de entrega da AP2; os números e o
+%  resultado obtido são da equipe.
+% ---------------------------------------------------------------------
+
+\begin{table}[H]
+\centering
+\caption{CT-07 --- autonomia com o rádio medido}
+\label{tab:ct07}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RNF{01} \\
+\midrule
+\textbf{Objetivo} & Recalcular a autonomia do nó com a linha do rádio medida e, se houver bateria de teste, confirmá-la por medição. \\
+\textbf{Material} & Placa com DHT22, ferramenta da Aula~10 (branch \texttt{apendice\_b}), medidor USB, rede WiFi \SI{2,4}{\giga\hertz}. \\
+\textbf{Procedimento} &
+  1. Medir os tempos de associação, DHCP, conexão (TCP e TLS) e publicação com \texttt{millis()}, em 10 ciclos HTTP e 10 HTTPS que começam com o rádio desligado (teclas 5 e 6).\newline
+  2. Ler a corrente da placa no medidor USB durante uma rajada de \SI{30}{\second} de ciclos (tecla r).\newline
+  3. Somar a linha do rádio ao Apêndice~\ref{ap:energia}, com o \emph{pior} dos 10 ciclos HTTP, e recalcular a autonomia.\newline
+  4. Se houver bateria 18650, alimentar o nó por ela e medir o tempo até o desligamento. \\
+\textbf{Resultado esperado} & Autonomia $\geq$ \SI{30}{dias} com a 18650 de \SI{2600}{\mAh}, a estimativa da AP1 que o \RNF{01} toma como alvo. \\
+\textbf{Resultado obtido} & Ciclo HTTP de \SI{2,27}{\second} de mediana e \SI{2,48}{\second} no pior caso, HTTPS de \SI{3,16}{\second} de mediana; com \SI{300}{\milli\ampere}, a linha do rádio soma \SI{29,7}{\mAh}/dia, o total vai a \SI{98,9}{\mAh}/dia e a autonomia calculada cai de 30 para 21 dias (19 com TLS). Passo 4 não executado: a equipe não tem bateria de teste. \\
+\textbf{Veredito} & \parcial{} (com o nó central e LoRa, \DP{6}~(c): 69,4 + 2 a 3 = 71,4 a \SI{72,4}{\mAh}/dia e $\approx$29 dias, por estimativa de folha de dados, sem o módulo; com WiFi direto, 21 dias; sem bateria real) \\
+\textbf{Evidência} & \texttt{gravador/dados/resumo.md} e \texttt{ciclos.csv} (branch \texttt{apendice\_b}), gerados do log \texttt{2026-10-23\_172639.log}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-08 --- publicação no período e no contrato}
+\label{tab:ct08}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{05} \\
+\midrule
+\textbf{Objetivo} & Verificar que cada leitura chega ao CSV do gravador no período especificado e no formato do contrato de dados. \\
+\textbf{Material} & Nó \texttt{eq01-no02} com o \emph{firmware} da branch \texttt{lab3}, \emph{broker} público \texttt{broker.hivemq.com}, \texttt{gravador.py}, \texttt{qualidade.py}. \\
+\textbf{Procedimento} &
+  1. Ligar o nó e o gravador, com \texttt{periodo\_s} no padrão de \SI{5}{\second}.\newline
+  2. Deixar publicar pelo menos 100 leituras (na campanha, \num{1263}).\newline
+  3. Rodar o \texttt{qualidade.py} sobre o CSV e medir o intervalo entre \texttt{ts} consecutivos. \\
+\textbf{Resultado esperado} & 100 leituras seguidas com intervalo de \SI{5}{\second} $\pm$ 10\,\%; zero mensagens fora do contrato. \\
+\textbf{Resultado obtido} & Dos \num{1262} intervalos entre leituras consecutivas, \num{1120} foram de exatamente \SI{5}{\second}; os outros são lacunas de conexão (\CT{14}). A maior sequência sem lacuna teve 439 leituras (de 18:11:56 a 18:48:26). Nenhuma mensagem fora do contrato; 50 trouxeram \texttt{rssi\_dbm} no lugar das grandezas, porque a leitura do DHT22 falhou. \\
+\textbf{Veredito} & \aprovado \\
+\textbf{Evidência} & \texttt{dados/campanha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt}, \texttt{serie\_temporal.png} e \texttt{resultados.md}; Listagem~\ref{lst:qualidade}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-09 --- queda do WiFi}
+\label{tab:ct09}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{06} \\
+\midrule
+\textbf{Objetivo} & Verificar que o nó reconecta sozinho à rede e ao \emph{broker} e que a fila local segura as leituras do período. \\
+\textbf{Material} & Nó e gravador da branch \texttt{lab3}, roteador, MQTT Explorer. \\
+\textbf{Procedimento} &
+  1. Com o nó publicando, desligar o roteador por cerca de \SI{2}{\minute}, anotando a hora.\newline
+  2. Religar o roteador e anotar a hora em que ele voltou e a do \texttt{online} do nó.\newline
+  3. Conferir no CSV se as leituras do período chegaram. \\
+\textbf{Resultado esperado} & Reconexão sem intervenção, em até \SI{30}{\second} depois que o roteador volta; nenhuma leitura do período perdida (ou perdas explicadas pelo tamanho da fila). \\
+\textbf{Resultado obtido} & Lacuna de \SI{101}{\second} no CSV, de 15:59:06 a 16:00:47 ($\approx$19 leituras). O nó voltou sozinho (\texttt{online} às 16:00:46) e retomou a publicação. Nenhuma leitura do período chegou: o \emph{firmware} não tem fila e não mede desconectado, e o \texttt{seq} pulou só 1. A hora em que o roteador voltou não foi anotada, então o tempo de reconexão não foi cronometrado neste teste. Ele foi medido na campanha: nas 553 quedas da conexão com o \emph{broker}, o \texttt{online} voltou em \SI{3,5}{\second} na mediana, \SI{8,6}{\second} no p90 e \SI{48,5}{\second} no pior caso; 552 das 553 ficaram dentro dos \SI{30}{\second} (Seção~\ref{sec:testes-ap2}). \\
+\textbf{Veredito} & \parcial{} (reconecta sozinho: ao \emph{broker}, medido em 552 de 553 quedas dentro dos \SI{30}{\second}; depois da volta do roteador, em até $\approx$\SI{8}{\second} estimados: associação e DHCP de \SI{1,74}{\second} medidos, espera de até \SI{5}{\second} pela próxima tentativa do \emph{broker} e TLS de $\approx$\SI{1}{\second}; mas não guarda as leituras da queda) \\
+\textbf{Evidência} & \texttt{dados/testes\_falha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt} e \texttt{README.md} com o registro de eventos; Listagem~\ref{lst:qualidade-testes}. Tempo de reconexão: \texttt{integracao/conta\_reconexoes.py} sobre \texttt{dados/campanha\_24-10-26/mensagens.csv}, excluído o lote das 16:10:14 a 16:10:17. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-10 --- o nó morre sem avisar}
+\label{tab:ct10}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{07} \\
+\midrule
+\textbf{Objetivo} & Verificar que o testamento publica \texttt{offline} no tópico \texttt{status} quando o nó cai sem desconectar. \\
+\textbf{Material} & Nó e gravador da branch \texttt{lab3}. \\
+\textbf{Procedimento} &
+  1. Com o nó conectado, retirar a alimentação e anotar a hora.\newline
+  2. Medir no CSV o tempo entre a última leitura e o \texttt{offline} no tópico \texttt{status}. \\
+\textbf{Resultado esperado} & \texttt{offline} em até \SI{45}{\second} ($1{,}5 \times$ o \emph{keepalive} de \SI{30}{\second}). \\
+\textbf{Resultado obtido} & Última leitura às 15:55:05; \texttt{offline} às 15:55:51, \SI{46}{\second} depois. O corte foi entre 0 e \SI{5}{\second} depois da última leitura, então o atraso a partir do corte ficou entre 41 e \SI{46}{\second}. \\
+\textbf{Veredito} & \aprovado{} (descontado o trânsito de $\approx$\SI{1}{\second} até o gravador, o \emph{broker} publicou o \texttt{offline} entre 40 e \SI{45}{\second} depois do corte) \\
+\textbf{Evidência} & \texttt{dados/testes\_falha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt} e \texttt{README.md} com o registro de eventos; Listagem~\ref{lst:qualidade-testes}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-11 --- o nó reinicia}
+\label{tab:ct11}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{08} \\
+\midrule
+\textbf{Objetivo} & Verificar que um reinício gera \texttt{boot} novo e não produz duplicatas nem perdas falsas. \\
+\textbf{Material} & Nó e gravador da branch \texttt{lab3}, \texttt{qualidade.py}. \\
+\textbf{Procedimento} &
+  1. Com o nó publicando, apertar o botão EN; repetir uma vez.\newline
+  2. Rodar o \texttt{qualidade.py} sobre o CSV.\newline
+  3. Contar quantas leituras uma deduplicação pela chave (\texttt{id}, \texttt{seq}) descartaria. \\
+\textbf{Resultado esperado} & \texttt{boot} novo; zero duplicatas e zero perdas falsas atribuídas ao reinício. \\
+\textbf{Resultado obtido} & Dois reinícios (15:56:11 e $\approx$15:56:47), com o \texttt{seq} voltando a 1. O \texttt{qualidade.py} contou 2 reinícios, 0 repetidas e 1 falta, que é da queda de WiFi, não dos reinícios. Não há \texttt{boot}: a chave (\texttt{id}, \texttt{seq}) descartaria 8 leituras válidas como repetidas. \\
+\textbf{Veredito} & \parcial{} (sem perda nem duplicata falsa, mas sem o \texttt{boot} que o requisito pede) \\
+\textbf{Evidência} & \texttt{dados/testes\_falha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt} e \texttt{README.md} com o registro de eventos; Listagem~\ref{lst:qualidade-testes}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-12 --- o gravador para}
+\label{tab:ct12}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RNF{08} \\
+\midrule
+\textbf{Objetivo} & Verificar que, com sessão persistente, o \emph{broker} guarda as mensagens enquanto o gravador está parado e as entrega na volta. \\
+\textbf{Material} & Nó e gravador da branch \texttt{lab3} (sem \texttt{-{}-sessao-limpa}), \texttt{qualidade.py}. \\
+\textbf{Procedimento} &
+  1. Com o nó publicando, parar o gravador com Ctrl+C.\newline
+  2. Religar o gravador e conferir a entrega do \emph{backlog}.\newline
+  3. Rodar o \texttt{qualidade.py}. \\
+\textbf{Resultado esperado} & \emph{Backlog} entregue na volta, sem buraco no CSV, com o gravador parado por até \SI{10}{\minute}. \\
+\textbf{Resultado obtido} & Teste: gravador parado de $\approx$15:57:46 a 15:58:18 (\SI{32}{\second}); as leituras de \texttt{seq} 9 a 14 chegaram juntas às 15:58:18, com os \texttt{ts} originais, e nenhum \texttt{seq} faltou. Campanha: o gravador foi ligado \SI{8,7}{\minute} depois do reinício do nó, e as 100 leituras de 16:01:32 a 16:10:05 chegaram entre 16:10:14 e 16:10:17, todas na conta da completude. \\
+\textbf{Veredito} & \parcial{} (sem perda até \SI{8,7}{\minute}; os \SI{10}{\minute} da meta não foram ensaiados) \\
+\textbf{Evidência} & \texttt{dados/testes\_falha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt} e \texttt{README.md} com o registro de eventos; Listagem~\ref{lst:qualidade-testes}. Para a campanha, \texttt{dados/campanha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt}, \texttt{serie\_temporal.png} e \texttt{resultados.md}; Listagem~\ref{lst:qualidade}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-13 --- antes do NTP}
+\label{tab:ct13}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RF{08} \\
+\midrule
+\textbf{Objetivo} & Verificar quantas leituras saem com \texttt{ts} \texttt{null} antes da sincronização do relógio e o que a equipe faz com elas. \\
+\textbf{Material} & Nó e gravador da branch \texttt{lab3}, \texttt{qualidade.py}. \\
+\textbf{Procedimento} &
+  1. Reiniciar o nó (os dois reinícios do \CT{11} e o do início da campanha).\newline
+  2. Conferir o \texttt{ts} das primeiras leituras de cada reinício. \\
+\textbf{Resultado esperado} & No máximo a primeira leitura sem hora; as que saírem são mantidas e contadas pelo \texttt{qualidade.py}, posicionadas pela hora de chegada. \\
+\textbf{Resultado obtido} & 0 leituras com \texttt{ts} nulo em 3 reinícios: o NTP acertou antes da primeira publicação. \\
+\textbf{Veredito} & \aprovado \\
+\textbf{Evidência} & \texttt{dados/testes\_falha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt} e \texttt{README.md} com o registro de eventos; Listagem~\ref{lst:qualidade-testes}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-14 --- longa duração (a campanha)}
+\label{tab:ct14}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RNF{07}; \RNF{05}; robustez (d) \\
+\midrule
+\textbf{Objetivo} & Verificar a completude do conjunto de dados e explicar cada lacuna. \\
+\textbf{Material} & A campanha inteira (Seção~\ref{sec:campanha}); \texttt{qualidade.py} e \texttt{grafico.py}. \\
+\textbf{Procedimento} &
+  1. Calcular as leituras esperadas (duração $\div$ período $+ 1$).\newline
+  2. Rodar o \texttt{qualidade.py} sobre o arquivo final, sem janela.\newline
+  3. Explicar cada lacuna com o \texttt{status} e o registro de eventos do Apêndice~\ref{ap:campanha}. \\
+\textbf{Resultado esperado} & Completude $\geq$ 95\,\%; todas as lacunas explicadas. \\
+\textbf{Resultado obtido} & \num{1263} leituras de \num{2003} esperadas em \SI{166,9}{\minute}: completude de 63,1\,\%. Fases estáveis com 95,6 e 95,9\,\%; fase degradada, de 16:30 a 18:10, com 40,3\,\% e 695 testamentos \texttt{offline}. As 138 lacunas coincidem com quedas de conexão registradas no \texttt{status}; a causa das quedas é uma hipótese não confirmada (Seção~\ref{sec:qualidade}). Nenhum reinício espontâneo do nó. \\
+\textbf{Veredito} & \RNF{07}: \reprovado; \RNF{05}: \parcial{} (\SI{33}{\minute} com o ar-condicionado ligado e nenhum salto entre leituras consecutivas, mas sem ensaio junto a um compressor) \\
+\textbf{Evidência} & \texttt{dados/campanha\_24-10-26/} (branch \texttt{lab3}, \emph{commit} \texttt{7b4482e}): \texttt{mensagens.csv}, \texttt{qualidade\_saida.txt}, \texttt{serie\_temporal.png} e \texttt{resultados.md}; Listagem~\ref{lst:qualidade}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-15 --- alcance no ponto de instalação}
+\label{tab:ct15}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & \RNF{06} \\
+\midrule
+\textbf{Objetivo} & Verificar que o enlace é estável no ponto de instalação do nó. \\
+\textbf{Material} & Dois ESP32 (sensor com DHT22, fixo; \emph{gateway} no notebook, móvel), firmware e gravador das branches \texttt{teste-esp-now} e \texttt{teste-ble}. \\
+\textbf{Procedimento} &
+  1. O sensor envia 10 pacotes de 25 bytes por segundo; o \emph{gateway} confirma cada um e imprime RSSI, \texttt{seq} e ida e volta.\newline
+  2. Gravar \SI{60}{\second} em cada posição: 1,5; 3; 5; 5 com 2 portas de madeira; 8 com parede; 11 com paredes; 18\,m com várias paredes.\newline
+  3. Repetir as mesmas posições com o outro rádio.\newline
+  4. Instalar o nó no ponto da Seção~\ref{sec:local} e registrar o RSSI por \SI{10}{\minute}. \\
+\textbf{Resultado esperado} & RSSI p10 $\geq$ \SI{-86}{dBm} e nenhuma perda no ponto de instalação. \\
+\textbf{Resultado obtido} & ESP-NOW (24/10, manhã): 0 perda até \SI{8}{\metre} com uma parede (RSSI p10 de \SI{-86}{dBm}); 18,7\,\% a \SI{11}{\metre} com duas paredes (p10 \SI{-96}{dBm}); 97,6\,\% a \SI{18}{\metre}. BLE (24/10, tarde): 100\,\% entregue até \SI{8}{\metre}; 40\,\% a \SI{11}{\metre}, com 4 a \SI{6}{\second} de atraso; sem enlace a 13 e \SI{18}{\metre}. Passo 4 não executado no cenário de referência; no local da campanha de 24/10, as 50 leituras com \texttt{rssi\_dbm} deram de \SI{-15}{} a \SI{-29}{dBm} (mediana de \SI{-18}{dBm}), muito acima do critério. \\
+\textbf{Veredito} & \aprovado{} no ponto de instalação da campanha (RSSI mínimo de \SI{-29}{dBm} contra \SI{-86}{dBm}); a farmácia não foi medida \\
+\textbf{Evidência} & \texttt{testes\_24-10-26/resultados\_corrigidos.csv} (\texttt{teste-esp-now}) e \texttt{gravador/primeira\_bateria\_24-10-26/resumo.csv} (\texttt{teste-ble}). Os rótulos digitados no gravador diferem (ESP-NOW: 1 parede a \SI{8}{\metre} e 2 a \SI{11}{\metre}; BLE: 2 e 3), mas as posições foram as mesmas: até \SI{5}{\metre}, sem parede, o BLE chegou \SI{8,7}{\deci\bel} abaixo, em média, e a \SI{8}{\metre} a diferença foi de \SI{6,0}{\deci\bel}, e não de cerca de \SI{15}{\deci\bel}, como seria com uma parede a mais. Vale a contagem do ESP-NOW. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-16 --- leituras da campanha no servidor do produto}
+\label{tab:ct16}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & Pergunta de projeto (envio a um servidor central); sem requisito próprio neste ciclo \\
+\midrule
+\textbf{Objetivo} & Verificar que o dado da campanha chega ao servidor do produto no contrato dele, por lotes autenticados, e que o reenvio de um lote não duplica leituras. \\
+\textbf{Material} & Servidor do produto (FastAPI e PostgreSQL, \texttt{docker-compose.yml} do repositório do produto, banco vazio, porta 8001); \texttt{integracao/ponte\_api.py}; CSV bruto da campanha. \\
+\textbf{Procedimento} &
+  1. Cadastrar pela API um nó central (com chave), uma sala sem faixa, uma sala com a faixa da sala de manipulação e um sensor em cada.\newline
+  2. Rodar a ponte com \texttt{-{}-repetir} para o sensor da sala sem faixa e conferir o total com \texttt{GET /sensores/\{id\}/leituras}.\newline
+  3. Repetir para o sensor da sala com faixa.\newline
+  4. Se algum lote falhar, reduzir até achar a menor condição que reproduz. \\
+\textbf{Resultado esperado} & Todas as leituras com grandeza aceitas; reenvio sem gravar nada; mesma série na consulta; alertas abertos para as leituras fora da faixa. \\
+\textbf{Resultado obtido} & Sala sem faixa: \num{1213} de \num{1213} aceitas em 13 lotes (HTTP 201), 0 rejeitadas; reenvio com o mesmo total (\num{1213}); série de 16:01:32 a 18:48:26, de 24,0 a \SI{30,7}{\celsius}; nó central \texttt{online}. Sala com faixa: HTTP 500 no primeiro lote; reprodução mínima com 6 leituras fora da faixa em temperatura e umidade (com 1 a 3, passa), erro do PostgreSQL no \texttt{INSERT ... ON CONFLICT} do alerta. \\
+\textbf{Veredito} & \parcial{} (o caminho do dado até o banco do produto funciona e é idempotente; a abertura de alertas falha com vários desvios no mesmo lote) \\
+\textbf{Evidência} & \texttt{integracao/resultado\_25-10-26.md} e \texttt{integracao/ponte\_api.py}. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CT-17 --- o servidor falha}
+\label{tab:ct17}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{3.2cm}L{12.0cm}@{}}
+\toprule
+\textbf{Requisito verificado} & Robustez (Cap.~\ref{cap:testes}, item e) \\
+\midrule
+\textbf{Objetivo} & Verificar o que o nó faz quando o servidor responde com erro ou não entende o corpo: quando repete, quando desiste e se percebe um dado que chegou mas não foi entendido. \\
+\textbf{Material} & Placa com DHT22 e o \emph{firmware} HTTP da ferramenta da Aula~10 (branch \texttt{apendice\_b}); gravador da mesma branch; rede WiFi \SI{2,4}{\giga\hertz}; servidor de teste \texttt{httpbin.org}. \\
+\textbf{Procedimento} &
+  1. Tecla \texttt{e}: enviar a leitura a \texttt{/status/404} e a \texttt{/status/503} por \texttt{postComPolitica()}.\newline
+  2. Tecla \texttt{2}: enviar o JSON do contrato a \texttt{/post}, escrito à mão, e comparar o campo \texttt{json} do eco com o enviado.\newline
+  3. Tecla \texttt{3}: repetir com uma vírgula a mais antes de fechar o objeto.\newline
+  4. Rodar \texttt{python -m gravador processar} e conferir o resumo. \\
+\textbf{Resultado esperado} & 404 sem repetir (erro do nó); 503 repetido com espera crescente até o limite de tentativas (erro do caminho); o corpo inválido detectado, mesmo com HTTP 200. \\
+\textbf{Resultado obtido} & 404: uma tentativa, \enquote{erro do nó: não retenta}. 503: tentativa 1, espera de \SI{1000}{\milli\second}; tentativa 2, espera de \SI{2000}{\milli\second}; tentativa 3, \enquote{limite de tentativas: desiste}. Tecla \texttt{2}: HTTP 200 e \texttt{json} igual ao enviado (corpo de 73 bytes). Tecla \texttt{3}: HTTP 200, corpo de 74 bytes, e o eco devolveu \texttt{\textquotedbl json\textquotedbl:\,null}; o nó imprimiu que o JSON não era igual ao enviado, e o resumo do gravador contou 1 corpo que não é JSON válido. \\
+\textbf{Veredito} & \aprovado{} (a política se comportou como projetada; a leitura de quem desiste se perde, porque este \emph{firmware} também não tem fila local) \\
+\textbf{Evidência} & \texttt{gravador/dados/brutos/2026-10-23\_172639.log} e \texttt{gravador/dados/resumo.md}, seção E3 (branch \texttt{apendice\_b}, \emph{commit} \texttt{f30a6de}); a regra está em \texttt{firmware/lib/calculo/calculo.cpp} (\texttt{classifica()}, \texttt{deveRetentar()} e \texttt{esperaRetentativa\_ms()}). \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe.}
+\end{table}

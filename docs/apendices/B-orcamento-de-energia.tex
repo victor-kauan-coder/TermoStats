@@ -1,0 +1,176 @@
+% =====================================================================
+%  Apêndice B — Orçamento de energia
+%  Instrumento da Aula 08 (09/09), entregue em 13/09.
+% =====================================================================
+\chapter{Orçamento de energia}
+\label{ap:energia}
+
+\begin{orientacao}
+Uma linha por \textbf{estado} do sistema, e os estados têm de cobrir as
+24 horas do dia. Os estados desta tabela precisam ser os mesmos da
+máquina de estados da Seção~\ref{sec:firmware}. A conta de cada linha é
+\[
+  \text{carga}\,[\si{\mAh}/\text{dia}] =
+  \frac{\text{corrente}\,[\si{\milli\ampere}] \times
+        \text{duração}\,[\si{\second}] \times \text{ciclos/dia}}{3600}.
+\]
+\end{orientacao}
+
+\begin{orientacao}
+Na AP2, a linha do rádio deixa de ser estimativa: entram os números
+medidos da Seção~\ref{sec:custo-radio}, e a autonomia é recalculada.
+Se o nó deixou de usar \emph{deep sleep} para manter a conexão com o
+\emph{broker}, os estados desta tabela mudam junto com a máquina de
+estados da Seção~\ref{sec:firmware}.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{Orçamento de energia do protótipo}
+\label{tab:energia}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{2.6cm}L{3.0cm}R{1.5cm}R{1.7cm}R{1.3cm}R{1.6cm}L{2.4cm}@{}}
+\toprule
+\textbf{Estado} & \textbf{O que está ligado} & \textbf{Corrente (mA)}
+& \textbf{Duração por ciclo (s)} & \textbf{Ciclos /dia}
+& \textbf{Carga (mA$\cdot$h /dia)} & \textbf{Origem do número} \\
+\midrule
+acorda e lê     & ESP32 ativo + DHT22 em leitura & 46,5 & 12,0 & 144 & 22,32 & \folhadedados \\
+transmite (AP2) & rádio WiFi: associa, DHCP, DNS, conecta, publica e desliga (pior de 10 ciclos HTTP; na AP1, \enquote{não se aplica}) & 300,0 & 2,48 & 144 & 29,70 & \bancada{} (tempo, \texttt{millis()}) + \bancada{} (corrente, medidor USB na rajada de 23/10) \\
+aciona o atuador& buzzer + LED de alarme: pulso de \SI{3}{\second} em cada ciclo fora da faixa, que passa a ser de \SI{60}{\second} & 35,0 & 3,0 & depende do tempo fora da faixa & --- & \estimativa{} (corrente); \emph{firmware} (duração) \\
+dorme           & ESP32 em deep sleep & 2,0 & 588,0 (AP1) 585,52 (AP2) & 144 & 47,04 (AP1) 46,84 (AP2) & \bancada \\
+\midrule
+\multicolumn{5}{@{}r}{\textbf{Total diário na AP1 (sem rádio e sem o alarme)}} & \textbf{69,4} & \\
+\multicolumn{5}{@{}r}{\textbf{Total diário na AP2 (com o rádio medido, sem o alarme)}} & \textbf{98,9} & \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe, com base nas constantes do firmware \texttt{esp32\_dht22.ino} (ajustadas para o ciclo de 10 min do \RF{01}) e na medição de 23/10 (branch \texttt{apendice\_b}, \texttt{gravador/dados/resumo.md}). Na versão da AP1 desta tabela, a coluna de carga trazia 0,22 e 0,47, os valores divididos por 100; o total de 69,4 já estava certo.}
+\end{table}
+
+\begin{orientacao}
+\textbf{Estimativa é resposta legítima, desde que declarada.} Número sem
+procedência não é número. Use \verb|\folhadedados|, \verb|\bancada| ou
+\verb|\estimativa| na última coluna.
+\end{orientacao}
+
+\section*{Quatro linhas de decisão}
+\phantomsection
+\addcontentsline{toc}{section}{Quatro linhas de decisão}
+
+\begin{description}[style=unboxed, leftmargin=0pt, font=\normalfont\bfseries]
+  \item[1. Consumo diário total e consumo médio.]\hfill\\
+    Aproximadamente \SI{69.4}{\mAh}/dia na AP1 (excluindo o alarme), o
+    que equivale a uma corrente média de $69{,}4/24 \approx
+    \SI{2.9}{\milli\ampere}$. \textbf{Na AP2}, com o ciclo de rádio
+    medido, \SI{98.9}{\mAh}/dia, ou \SI{4.12}{\milli\ampere} de média. O
+    alarme continua fora da conta: sua corrente segue sem medição.
+  \item[2. Fonte de alimentação escolhida, e por quê.]\hfill\\
+    Bateria recarregável (Li-ion 18650), porque os pontos de instalação
+    mais exigentes --- dentro de um freezer ou próximos a uma câmara
+    fria --- nem sempre têm tomada acessível, e a fiação até a rede
+    elétrica é uma das restrições já registradas no
+    Capítulo~\ref{cap:requisitos}.
+  \item[3. Autonomia estimada, e a conta que levou até ela.]\hfill\\
+    Com uma 18650 de \SI{2600}{\mAh} e 80\,\% de profundidade de
+    descarga útil, a capacidade útil é de $2600 \times 0{,}80 =
+    \SI{2080}{\mAh}$. Autonomia $= 2080 / 69{,}4 \approx$ \textbf{30
+    dias}. Este número cobre apenas o sensoriamento; será revisto para
+    baixo assim que o consumo do alarme for medido e somado.
+
+    \textbf{Na AP2}, com o rádio medido: autonomia $= 2080 / 98{,}9
+    \approx$ \textbf{21 dias}. Com TLS, usando a mediana do ciclo HTTPS
+    (\SI{3,16}{\second}), $2080 / 107{,}0 \approx 19$ dias; com a
+    estimativa antiga de \SI{120}{\milli\ampere} para o rádio, seriam
+    $2080 / 81{,}0 \approx 26$ dias. Na arquitetura proposta para o
+    produto (\DP{6}~(c)), o nó de borda não associa ao roteador: manda
+    a leitura por LoRa ao nó central, a 2 a \SI{3}{\mAh}/dia
+    (\folhadedados, matriz de 22/09), e a conta fica em
+    $2080 / 71{,}4 \approx 29{,}1$ a $2080 / 72{,}4 \approx 28{,}7$
+    dias, \textbf{$\approx$29 dias}, perto do alvo do \RNF{01}. A linha
+    do LoRa só será medida quando o módulo chegar.
+    Nenhum desses números foi verificado com bateria real (\CT{07}).
+  \item[4. O que acontece quando a energia acaba --- ou enquanto o nó dorme.]\hfill\\
+    Enquanto dorme, o nó está em estado seguro por definição: não há
+    atuador acionado durante o \emph{deep sleep}, e a próxima leitura
+    ocorre no horário programado pelo temporizador. Quando a bateria se
+    esgota, o nó simplesmente para de acordar --- e, como não havia rede
+    na AP1, \textbf{nada nem ninguém era avisado disso}. Na AP2, com o
+    nó conectado ao \emph{broker}, o testamento publica \texttt{offline}
+    em até \SI{45}{\second} depois da última notícia do nó, e o gravador
+    registra a hora no CSV (na campanha, \SI{46}{\second}, \CT{10});
+    ninguém recebe um aviso automático, e as quedas só são vistas por
+    quem abre o terminal do gravador ou o MQTT Explorer. Num nó que dorme entre leituras (opção (a) da
+    \DP{6}), o testamento não serve para isso, porque o nó sai do
+    \emph{broker} a cada ciclo; quem denuncia o nó morto é a falta de
+    leituras.
+\end{description}
+
+\section*{Se a conta atravessar tensões diferentes}
+\phantomsection
+\addcontentsline{toc}{section}{Se a conta atravessar tensões diferentes}
+
+\begin{orientacao}
+\SI{}{\mAh} só se somam dentro do mesmo barramento de tensão. Se algum
+atuador funciona em outra tensão, converta para watt-hora antes de somar.
+Use eficiência de 0,85 se não souber a do seu conversor.
+\end{orientacao}
+
+\begin{align*}
+  E\,[\si{\Wh}] &= V\,[\si{\volt}] \times I\,[\si{\ampere}] \times t\,[\si{\hour}] \\[2pt]
+  \text{carga na bateria}\,[\si{\mAh}] &=
+    \frac{E\,[\si{\Wh}]}{\eta_{\text{conversor}} \times V_{\text{bateria}}\,[\si{\volt}]}
+    \times 1000
+\end{align*}
+
+\section*{Se o projeto for alimentado por painel}
+\phantomsection
+\addcontentsline{toc}{section}{Se o projeto for alimentado por painel}
+
+\begin{align*}
+  E_{\text{diária}}\,[\si{\Wh}] &=
+    \frac{\text{consumo}\,[\si{\mAh}]}{1000} \times V_{\text{bateria}}\,[\si{\volt}] \\[2pt]
+  P_{\text{painel}}\,[\si{\watt}] &=
+    \frac{E_{\text{diária}}}{\text{HSP} \times f_{\text{perdas}}} \times f_{\text{segurança}}
+\end{align*}
+
+\begin{orientacao}
+Para Teresina, use a HSP do \textbf{pior mês} (Atlas Brasileiro de
+Energia Solar ou SunData do CRESESB); a média anual fica perto de
+\SI{5.5}{\kilo\watt\hour\per\square\metre} por dia, mas é o pior mês que
+decide. Fator de perdas 0,6 e fator de segurança entre 2 e 3 são
+conservadores e suficientes para esta disciplina. A bateria, nesse caso,
+é dimensionada pelos \textbf{dias sem sol} que o projeto precisa
+aguentar, não pelo consumo de um dia.
+\end{orientacao}
+
+\section*{Quem está dimensionando este sistema}
+\phantomsection
+\addcontentsline{toc}{section}{Quem está dimensionando este sistema}
+
+\begin{orientacao}
+Uma frase: qual estado responde pela maior fatia do consumo, e em que
+percentual. Se a resposta for o atuador, a decisão que importa no
+projeto não é de \emph{firmware}.
+\end{orientacao}
+
+O \emph{deep sleep} responde por cerca de 68\,\% do consumo diário
+estimado da AP1 (\SI{47.0}{\mAh} dos \SI{69.4}{\mAh}/dia), mesmo sendo o
+estado de menor corrente instantânea --- ele simplesmente dura muito
+mais tempo que a leitura. Quem dimensiona este sistema, portanto, não
+é o DHT22: é a corrente de repouso da placa em \emph{deep sleep}, o
+que só poderá ser confirmado (e revisto) quando o consumo do alarme
+for medido em bancada e somado a este orçamento.
+
+\textbf{Na AP2}, com o rádio na conta, quem dimensiona o sistema
+continua sendo o \emph{deep sleep}, mas agora com 47\,\% do consumo
+diário (\SI{46.8}{\mAh} dos \SI{98.9}{\mAh}), seguido de perto pelo rádio,
+com 30\,\%. Dentro do ciclo de rádio, quem pesa é o DHCP
+(\SI{1,52}{\second} dos \SI{2,27}{\second}). A bateria de ESP-NOW de 24/10,
+feita no lugar do LoRa, mostra o outro lado: com um módulo sem regulador
+nem conversor USB (sono de \SI{65}{\micro\ampere}), o sono deixa de pesar,
+e quem dimensiona passa a ser o rádio no pior enlace, com 82\,\% do
+consumo a \SI{18}{\metre} (no modelo daquela bateria, com envio a cada
+\SI{5}{\minute}). Num enlace ruim, as retransmissões custam mais que a
+bateria economiza; é mais um motivo para o produto usar um rádio que
+alcance o nó central com folga, como o LoRa.

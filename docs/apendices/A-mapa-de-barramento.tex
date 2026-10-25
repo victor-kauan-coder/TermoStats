@@ -1,0 +1,82 @@
+% =====================================================================
+%  Apêndice A — Mapa de barramento
+%  Instrumento da Aula 06 (31/08), entregue em 01/09.
+% =====================================================================
+\chapter{Mapa de barramento}
+\label{ap:barramento}
+
+\begin{orientacao}
+Transcreva aqui o mapa entregue em 01/09, \textbf{atualizado} para os
+componentes que de fato estão no protótipo. Uma linha por dispositivo.
+Se algum componente ainda não chegou, mantenha a linha e marque
+\emph{(previsto)}.
+\end{orientacao}
+
+\begin{table}[H]
+\centering
+\caption{Mapa de barramento do protótipo}
+\label{tab:barramento}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}L{2.4cm}L{3.0cm}L{1.5cm}L{2.5cm}L{2.4cm}C{1.0cm}C{1.6cm}@{}}
+\toprule
+\textbf{Dispositivo} & \textbf{O que mede ou faz} & \textbf{Barra\-mento}
+& \textbf{Como é selecionado} & \textbf{Pinos na D1 R32} & \textbf{Ten\-são}
+& \textbf{Leituras por segundo} \\
+\midrule
+DHT22 / AM2302 & Temperatura e umidade relativa & digital 1 fio (proprietário) & ponto a ponto (protocolo próprio, não endereçável) & DATA: GPIO4 (A1), pull-up 10\,k$\Omega$ até 3V3 & 3V3 & 1 a cada 600\,s (\RF{01}); internamente, até 1 a cada 2,1\,s durante a amostragem \\
+LED de status & Indica nó acordado (bancada) & GPIO digital & saída dedicada, sem endereço & GPIO25 (D3) & 3V3 & aceso durante todo o ciclo acordado ($\approx$\SI{12}{\second}) \\
+Divisor de \texttt{VBAT} (opcional) & Tensão da bateria & ADC (analógico) & ADC1 dedicado, sem endereço & GPIO34 (A2), só entrada & 0--\SI{2.1}{\volt} na entrada do ADC & 1 por ciclo de leitura (600\,s) \\
+UART0 & Upload de firmware e monitor serial & UART & ponto a ponto & GPIO1 / GPIO3 (D0 / D1) --- \textbf{reservado, não ocupar} & 3V3 & sob demanda (bancada) \\
+Buzzer ativo (alarme) & Sinalização sonora de desvio & GPIO digital & saída dedicada, sem endereço & GPIO26 (D4), acionado em nível alto & 3V3 & sob evento: pulso de \SI{3}{\second} a cada \SI{60}{\second} fora da faixa (\RF{03}) \\
+LED de alarme & Sinalização visual de desvio & GPIO digital & saída dedicada, sem endereço & GPIO27 (D5), resistor de $\approx$\SI{330}{\ohm} & 3V3 & junto com o buzzer (\RF{03}) \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pela equipe, com base no firmware \texttt{esp32\_dht22.ino} e seu README. O \emph{firmware} de comunicação da campanha usa só o DHT22 no mesmo GPIO4, lido uma vez a cada \SI{5}{\second}, e o rádio WiFi interno.}
+\end{table}
+
+\begin{orientacao}
+Lembretes das colunas, na ordem: o \textbf{barramento} é
+I\textsuperscript{2}C, SPI, 1-Wire, UART ou analógico (ADC);
+\textbf{como é selecionado} responde \emph{como o mestre diz
+\enquote{você, agora}} --- endereço (\texttt{0x76}), pino de CS
+(\texttt{GPIO5}), ROM ID ou \enquote{ponto a ponto} para UART;
+\textbf{pinos} exige a serigrafia \emph{e} o GPIO
+(\texttt{SDA/SCL (21/22)}); e \textbf{leituras por segundo} é o que a
+\emph{aplicação} exige, não o máximo que o sensor entrega.
+\end{orientacao}
+
+\section*{Decisões de barramento}
+\phantomsection
+\addcontentsline{toc}{section}{Decisões de barramento}
+
+\begin{description}[style=unboxed, leftmargin=0pt, font=\normalfont\bfseries]
+  \item[1. Conflitos de pino encontrados, e como foram resolvidos.]\hfill\\
+    Nenhum conflito de pino ocupado. A equipe descartou de antemão os
+    pinos \texttt{GPIO2} (LED\_BUILTIN + \emph{strapping} de boot) e
+    \texttt{GPIO12} (\emph{strapping} ligado à tensão da flash), e os
+    pinos \texttt{A2}--\texttt{A5}, que são só entrada e por isso não
+    servem ao dado do DHT22, que precisa também escrever.
+  \item[2. Colisões de endereço, se há dois dispositivos I\textsuperscript{2}C iguais.]\hfill\\
+    Não se aplica: o DHT22 não usa I\textsuperscript{2}C, e sim um
+    protocolo próprio ponto a ponto, sem endereço configurável. Cada
+    DHT22 adicional exigiria um pino de dado dedicado --- não há como
+    endereçar dois no mesmo fio.
+  \item[3. O dispositivo mais lento do conjunto, e quanto ele custa ao laço.]\hfill\\
+    O próprio DHT22, que exige um intervalo mínimo de \SI{2}{\second}
+    entre leituras (limite do fabricante, não escolha do projeto). O
+    \emph{firmware} absorve esse custo porque o ciclo inteiro já é
+    dedicado à leitura --- entre um despertar e o próximo, o nó está
+    em \emph{deep sleep}, então não há outra tarefa concorrente para
+    essa espera atrapalhar.
+  \item[4. O que mudou com o rádio (AP2).]\hfill\\
+    Com o WiFi ligado, o ADC2 do ESP32 deixa de ser confiável; o
+    divisor de \texttt{VBAT} já estava no \texttt{GPIO34}, do ADC1, e
+    não precisou mudar. A espera do DHT22 passou a importar: no
+    \emph{firmware} de comunicação há uma tarefa concorrente, o
+    \texttt{mqtt.loop()}, que não pode ficar mais de $1{,}5 \times$ o
+    \emph{keepalive} (\SI{45}{\second}) sem rodar. A leitura única de
+    agora não pesa; a mediana de 5 amostras da AP1 seguraria o laço por
+    cerca de \SI{8,4}{\second}, o que ainda cabe
+    (Seção~\ref{sec:firmware-com}).
+\end{description}

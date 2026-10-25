@@ -1,0 +1,200 @@
+% =====================================================================
+%  Capítulo 9 — Limitações e próximo ciclo
+% =====================================================================
+\chapter{Limitações e próximo ciclo}
+\label{cap:conclusao}
+\rubricaComunicacao
+
+\begin{orientacao}
+Uma página. Sem repetir o resumo e sem adjetivo de autoelogio.
+\end{orientacao}
+
+\section{Limitações conhecidas}
+
+\begin{orientacao}
+O que o sistema não faz, o que só funciona sob condições controladas e
+qual número do relatório é o mais frágil. Todo projeto deste ciclo tem
+pelo menos um número que é estimativa: identifique-o. As limitações
+abaixo vêm da AP1; mantenham só as que continuam valendo e acrescentem
+as da AP2.
+\end{orientacao}
+
+\textbf{Herdadas da AP1, e que continuam valendo.} A autonomia da
+\RNF{01} continua calculada, e não medida: os 21 dias de agora usam o
+tempo de rádio medido, mas nenhum ensaio com bateria real foi feito, e o
+consumo do alarme segue fora da conta. A robustez a interferência
+eletromagnética (\RNF{05}) ganhou só uma evidência indireta, os 33
+minutos de ar-condicionado ligado na campanha, sem o ensaio dedicado
+junto a um compressor. A lógica de mudança de faixa (\RF{02}) continua
+falhando nos testes de bancada da AP1, a cessação do alarme (\RF{04})
+continua sem log formal, e o sensor desconectado ainda leva o nó a um
+laço de reinícios pelo \emph{watchdog} (\CT{05}). Nenhuma delas foi
+tratada neste ciclo.
+
+\textbf{Da AP2.} A campanha durou \SI{2,78}{\hour}, numa tarde de
+24/10, num cômodo com ar-condicionado e não no cenário de referência, com
+um nó na USB e o roteador no mesmo ambiente; ela não mostra o ciclo
+diário, a madrugada, as paredes da farmácia nem a porta do freezer. As
+demais limitações conhecidas:
+
+\begin{itemize}
+  \item \textbf{O nó que publica não é o nó que alarma.} O
+    \emph{firmware} da campanha (branch \texttt{lab3}) não tem a leitura
+    filtrada, o alarme local, a configuração na NVS nem o \emph{deep
+    sleep} da AP1; o \emph{firmware} da AP1 não publica. Tudo o que o
+    Cap.~\ref{cap:testes} mede de comunicação vale para o primeiro, e
+    tudo o que mede de alarme, para o segundo.
+  \item \textbf{Sem fila local e sem \texttt{boot}.} Toda queda de
+    conexão vira leitura perdida de vez (cerca de 740 na campanha), e um
+    reinício só é reconhecido se a primeira leitura depois dele chegar.
+  \item \textbf{A causa da fase degradada é uma hipótese.} O
+    \emph{timeout} de \SI{1}{\second} da biblioteca MQTT explica o padrão
+    das quedas, mas a latência até o \emph{broker} não foi medida e o
+    teste com \emph{timeout} maior não foi feito. O número mais frágil
+    da AP2, depois da corrente do rádio, é a própria completude: outra
+    tarde, com outra carga na rede, poderia dar 96\,\% ou menos que
+    63\,\%.
+  \item \textbf{\emph{Broker} público, sem autenticação.} Qualquer
+    pessoa poderia ter publicado em \texttt{ufpi-iot26/eq01/\#}; nada
+    estranho chegou, mas nada impedia.
+  \item \textbf{Período de \SI{5}{\second}, e não de \SI{600}{\second}.}
+    A campanha não exercita o período do \RF{01} nem mede a energia do
+    nó sempre conectado.
+  \item \textbf{O número mais frágil é a corrente do rádio.} Os
+    \SI{300}{\milli\ampere} da Seção~\ref{sec:custo-radio} são da placa
+    inteira, lidos no medidor USB, e não do ESP32; com a estimativa
+    anterior de \SI{120}{\milli\ampere}, a autonomia calculada passaria de
+    21 para 26 dias. O tempo de rádio, ao contrário, foi medido com
+    \texttt{millis()} em 36 ciclos.
+  \item \textbf{A conexão TLS foi medida contra um servidor de eco, não
+    contra o \emph{broker} da campanha}, e a corrente do nó conectado e
+    ocioso, que é o que pesa num nó que não dorme (\DP{6}), não foi
+    medida.
+  \item \textbf{O alcance foi medido num ambiente interno de teste, com
+    um único teste de \SI{60}{\second} por posição}, sem caracterizar as
+    paredes nem controlar a orientação das placas; a contagem de paredes
+    digitada a 8 e \SI{11}{\metre} difere entre as baterias de ESP-NOW e
+    de BLE, embora o RSSI mostre que as posições foram as mesmas
+    (Apêndice~\ref{ap:testes}, \CT{15}).
+    Câmaras frias e freezers, cujas paredes metálicas devem atenuar muito
+    mais, não foram testados.
+  \item \textbf{Os testes de robustez da AP1 (\CT{05} e \CT{06}) foram
+    feitos com um DHT11}, e não com o DHT22 do projeto; o comportamento
+    observado (laço de reinícios e recuperação da NVS) não depende do
+    sensor, mas a precisão declarada nas mensagens, sim.
+  \item \textbf{O nó não confere o certificado do \emph{broker}}
+    (\texttt{setInsecure()}, herdado do Lab~03): a conexão é cifrada, mas
+    não autenticada.
+  \item \textbf{LoRa/LoRaWAN, a tecnologia escolhida para o produto, não
+    foi testado}: o módulo comprado pela equipe não chegou a tempo. O
+    alcance, o tempo no ar e o consumo do LoRa vêm da matriz de 22/09, da
+    folha de dados e da conta do ar da Aula~14, e não de medição; a
+    autonomia de $\approx$29 dias do nó de borda é estimativa. Os
+    substitutos testados no lugar dele foram medidos numa casa, e não na
+    farmácia: o ESP-NOW foi bem até \SI{8}{\metre} com uma parede, mas
+    pode não repetir esse resultado no nosso caso de uso, e o interior do
+    freezer não foi testado com nenhum rádio. O nó central continua sem hardware
+    definido.
+\end{itemize}
+
+\section{O que entra no próximo ciclo}
+
+\begin{orientacao}
+Ligue este relatório ao seguinte.
+\aPartirDaAP{1}{}%
+\seAP{1}{Na AP2 a equipe vai integrar este sistema a uma infraestrutura
+de comunicação e formar o conjunto de dados do projeto: diga qual
+tecnologia é a candidata e qual linha do orçamento de energia vai ser
+medida em vez de estimada.}%
+\seAP{2}{Na AP3 a equipe vai treinar e embarcar um modelo: diga o que
+pretende classificar ou prever, e se o conjunto de dados formado neste
+ciclo é suficiente para isso.}%
+\seAP{3}{Diga o que o projeto precisaria para sair do laboratório e
+virar algo instalado no contexto do Capítulo~\ref{cap:problema}:
+alimentação, invólucro, manutenção, custo por unidade em escala.}
+\end{orientacao}
+
+Na AP3 a equipe vai treinar e embarcar um modelo sobre o conjunto de
+dados formado neste ciclo. O que se pretende é detectar uma falha de
+climatização --- o ar-condicionado que desliga, ou a porta de um
+freezer que fica aberta --- pela forma da curva de temperatura e
+umidade, antes que a leitura saia da faixa. O conjunto tem \textbf{um} exemplo desse evento, anotado no
+registro do Apêndice~\ref{ap:campanha} (16:35 de 24/10), o que não
+basta para treinar nem para validar. Falta coletar mais
+desligamentos, em dias e horários diferentes e de preferência no
+cenário de referência, e trechos longos sem evento.
+
+Antes disso, o \emph{firmware} precisa de três mudanças, nesta ordem:
+uma fila local, para que uma queda de conexão atrase a leitura em vez
+de apagá-la; o \texttt{boot} no contrato; e a união com o
+\emph{firmware} da AP1, para que o nó que publica seja o mesmo que
+alarma. Junto com elas, o teste do \emph{timeout} da biblioteca MQTT
+(\texttt{mqtt.setTimeout(5000)}) com a contagem de \texttt{offline}
+antes e depois. Quando o módulo LoRa chegar, o enlace entre o nó de
+borda e o nó central passa a ser LoRa, com o contrato em binário de 8
+bytes, e o alcance e o consumo dele serão medidos nas mesmas posições
+das baterias de ESP-NOW e BLE, de preferência também com o nó dentro de
+um freezer.
+
+A ponte com o servidor do produto (\CT{16}) resolveu duas questões do
+contrato e deixou duas para o próximo ciclo. Resolvidas: a hora da
+leitura continua sendo a do nó (o \texttt{ts} do NTP vira o
+\texttt{data\_hora} em UTC), e o \texttt{lote\_id} derivado do nó e do
+intervalo de \texttt{seq} torna o reenvio idempotente, como o reenvio dos
+13 lotes mostrou. Abertas: no produto, o nó de borda em \emph{deep sleep}
+com LoRa não terá NTP, e a hora terá de vir do nó central, com o
+atraso declarado no contrato; e o \texttt{boot} precisa entrar no
+\texttt{lote\_id}, para que um reinício não gere o mesmo identificador
+para leituras diferentes. O servidor tem ainda um defeito a corrigir:
+um lote com várias leituras fora da faixa em temperatura e umidade
+derruba a abertura de alertas (HTTP 500), e o lote é recusado inteiro.
+
+\section{Divisão do trabalho}
+
+\begin{orientacao}
+Uma linha por integrante, dizendo o que cada um fez neste ciclo. Os
+papéis rotacionam a cada módulo: ninguém repete na AP2 o papel que teve
+na AP1. Na AP1: João Pedro na integração; Victor e Davi no
+\emph{firmware}; Felipe no \emph{hardware} e nos testes; Luanderson na
+documentação.
+\end{orientacao}
+
+Os papéis rotacionaram em relação à AP1, e cada integrante ficou com
+uma frente. Os \emph{commits} da AP2 foram enviados ao repositório por
+um único integrante (João Pedro), que concentrou a inserção do material
+de todos; por isso a autoria das tarefas é a desta lista, e não a do
+histórico do Git.
+
+\begin{itemize}
+  \item \textbf{Felipe} (\emph{firmware} e comunicação; na AP1,
+    \emph{hardware} e testes): \emph{firmware} MQTT da campanha sobre o
+    sketch do Lab~03 (DHT22 no \texttt{GPIO4}, tópicos da equipe, NTP,
+    testamento e sessão persistente); \emph{firmware} de sensor e de
+    \emph{gateway} das baterias de ESP-NOW e de BLE; ferramenta da
+    Aula~10 que cronometra o ciclo de rádio (branches \texttt{lab3},
+    \texttt{teste-esp-now}, \texttt{teste-ble} e
+    \texttt{apendice\_b}).
+  \item \textbf{João Pedro} (dados --- gravador e qualidade; na AP1,
+    integração): mudanças no \texttt{gravador.py} e no
+    \texttt{qualidade.py}, \texttt{grafico.py} novo, gravadores seriais
+    das baterias e reanálise dos dados brutos (\texttt{analise.py});
+    hospedou os testes de falha e a campanha, com o nó, o roteador e o
+    notebook do gravador, e anotou os eventos do ambiente.
+  \item \textbf{Luanderson} (dados --- campanha e registro de eventos;
+    na AP1, documentação): roteiro dos testes de falha e da campanha,
+    ficha da campanha, diário e registro de eventos
+    (Apêndice~\ref{ap:campanha}), contagens sobre o CSV (fases, quedas de
+    conexão, atraso) e consolidação dos números usados no relatório.
+  \item \textbf{Victor} (integração --- repositório, \emph{broker} e
+    serviços de telemetria; na AP1, \emph{firmware}): organização do
+    repositório e das branches de trabalho, \emph{commit} da entrega com
+    a \emph{tag} \texttt{ap2}, contrato de tópicos e configuração do
+    \emph{broker}, e a ligação com o servidor do produto (nó central,
+    lote e chave de API).
+  \item \textbf{Davi} (documentação --- relatório, registro de decisões e
+    prazos; na AP1, \emph{firmware}): migração do relatório para o modelo
+    da AP2, caixas de decisão do Módulo~2 (\DP{6} a \DP{8}), tabela de
+    rastreabilidade, declaração de IA e controle dos prazos da entrega.
+\end{itemize}
+
+\imprimirTabelaIntegrantes
